@@ -1,2 +1,0 @@
-# Tizim AI Backend Application
-
