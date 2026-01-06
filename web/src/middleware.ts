@@ -4,12 +4,12 @@ import { getToken } from "next-auth/jwt"
 import { getAuthSecret } from "@/lib/auth"
 
 export async function middleware(request: NextRequest) {
-    let token: unknown = null
+    let token: { role?: string } | null = null
     try {
         token = await getToken({
             req: request,
             secret: getAuthSecret()
-        })
+        }) as { role?: string } | null
     } catch {
         // Secret/env muammosi bo'lsa - authenticated emas deb hisoblaymiz
         token = null
@@ -25,7 +25,7 @@ export async function middleware(request: NextRequest) {
     }
 
     // Check for admin role if accessing the dashboard
-    if (isDashboard && isAuth) {
+    if (isDashboard && isAuth && token) {
         if (token.role !== 'admin') {
             // You might want to redirect to a specific 'unauthorized' page
             // For now, redirecting to login

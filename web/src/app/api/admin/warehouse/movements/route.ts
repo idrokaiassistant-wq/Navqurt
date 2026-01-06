@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
 
         const movements = await prisma.stockMovement.findMany({
             include: {
-                stockItem: true
+                item: true
             },
             orderBy: { date: "desc" }
         })
@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
     try {
         await assertAdmin(request)
         const body = await request.json()
-        const { type, itemId, amount, price, note } = body
+        const { type, itemId, amount, unit, price, note } = body
 
         // Update stock item quantity
         const stockItem = await prisma.stockItem.findUnique({
@@ -58,11 +58,12 @@ export async function POST(request: NextRequest) {
                 type,
                 itemId,
                 amount: parseFloat(amount),
-                price: price ? parseFloat(price) : null,
+                unit: unit || stockItem.unit,
+                price: price ? parseInt(price) : null,
                 note
             },
             include: {
-                stockItem: true
+                item: true
             }
         })
 

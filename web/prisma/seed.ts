@@ -5,17 +5,17 @@ const prisma = new PrismaClient()
 
 async function main() {
     // Delete existing admin user if exists
-    await prisma.user.deleteMany({
+    await prisma.adminUser.deleteMany({
         where: { email: "admin@navqurt.uz" }
     })
 
     // Create admin user with hashed password
     const hashedPassword = await bcrypt.hash("admin123", 10)
 
-    const admin = await prisma.user.create({
+    const admin = await prisma.adminUser.create({
         data: {
             email: "admin@navqurt.uz",
-            password: hashedPassword,
+            passwordHash: hashedPassword,
             name: "Admin Navqurt",
             role: "admin"
         }
