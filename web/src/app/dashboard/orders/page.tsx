@@ -1,70 +1,153 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+"use client"
 
-const orders = [
-    { id: "#1234", customer: "Alisher Karimov", product: "iPhone 15 Pro", amount: "12.5M", status: "Yetkazildi", date: "2026-01-05" },
-    { id: "#1235", customer: "Nilufar Rahimova", product: "MacBook Air M3", amount: "18.9M", status: "Jarayonda", date: "2026-01-05" },
-    { id: "#1236", customer: "Sardor Toshev", product: "AirPods Pro 2", amount: "2.8M", status: "Kutilmoqda", date: "2026-01-04" },
-    { id: "#1237", customer: "Madina Azimova", product: "iPad Pro 12.9", amount: "15.2M", status: "Yetkazildi", date: "2026-01-04" },
-    { id: "#1238", customer: "Jasur Xolmatov", product: "Apple Watch Ultra", amount: "9.5M", status: "Jarayonda", date: "2026-01-03" },
-    { id: "#1239", customer: "Dilshod Nazarov", product: "Samsung Galaxy S24", amount: "11.2M", status: "Yetkazildi", date: "2026-01-03" },
-    { id: "#1240", customer: "Zarina Umarova", product: "Sony WH-1000XM5", amount: "3.5M", status: "Kutilmoqda", date: "2026-01-02" },
-    { id: "#1241", customer: "Bobur Saidov", product: "Dell XPS 15", amount: "22.8M", status: "Jarayonda", date: "2026-01-02" },
-]
+import { useEffect, useState } from "react"
+import { Clock } from "lucide-react"
+import { timeAgo } from "@/lib/date-utils"
+
+interface Order {
+    id: string
+    userId: string
+    totalAmount: number
+    deliveryFee: number
+    status: string
+    createdAt: string
+    user: {
+        fullName?: string
+        phone?: string
+    }
+    items: unknown[]
+}
+
+const statusMap: Record<string, { label: string; color: string }> = {
+    NEW: { label: "Yangi", color: "bg-emerald-500" },
+    CONFIRMED: { label: "Tasdiqlangan", color: "bg-blue-500" },
+    PREPARING: { label: "Tayyorlanmoqda", color: "bg-amber-500" },
+    ON_DELIVERY: { label: "Yo&apos;lda", color: "bg-purple-500" },
+    DELIVERED: { label: "Yetkazildi", color: "bg-slate-500" },
+    CANCELED: { label: "Bekor qilindi", color: "bg-rose-500" }
+}
 
 export default function OrdersPage() {
+    const [orders, setOrders] = useState<Order[]>([])
+    const [loading, setLoading] = useState(true)
+
+    useEffect(() => {
+        fetchOrders()
+    }, [])
+
+    const fetchOrders = async () => {
+        try {
+            const res = await fetch("/api/admin/orders")
+            if (res.ok) {
+                const data = await res.json()
+                setOrders(data)
+            }
+        } catch (error) {
+            console.error("Failed to fetch orders:", error)
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    const handleStatusChange = async (orderId: string, newStatus: string) => {
+        try {
+            const res = await fetch(`/api/admin/orders/${orderId}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ status: newStatus })
+            })
+            if (res.ok) {
+                await fetchOrders()
+            }
+        } catch (error) {
+            console.error("Failed to update order status:", error)
+        }
+    }
+
+    if (loading) {
+        return <div className="text-white">Yuklanmoqda...</div>
+    }
+
     return (
-        <div className="space-y-8">
-            <div>
-                <h1 className="text-3xl font-bold text-zinc-900 dark:text-white">
-                    Buyurtmalar
-                </h1>
-                <p className="text-zinc-500 mt-1">
-                    Barcha buyurtmalarni boshqaring
-                </p>
+        <div className="space-y-6">
+            <div className="flex items-center justify-between">
+                <div>
+                    <h1 className="text-2xl font-bold text-white">Buyurtmalar</h1>
+                    <p className="text-slate-400">Barcha buyurtmalarni boshqaring</p>
+                </div>
             </div>
 
-            <Card>
-                <CardHeader>
-                    <CardTitle>Buyurtmalar ro'yxati</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div className="overflow-x-auto">
-                        <table className="w-full">
-                            <thead>
-                                <tr className="border-b text-left text-sm text-zinc-500">
-                                    <th className="pb-3 font-medium">ID</th>
-                                    <th className="pb-3 font-medium">Mijoz</th>
-                                    <th className="pb-3 font-medium">Mahsulot</th>
-                                    <th className="pb-3 font-medium">Summa</th>
-                                    <th className="pb-3 font-medium">Sana</th>
-                                    <th className="pb-3 font-medium">Holat</th>
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
+                <div className="overflow-x-auto">
+                    <table className="w-full">
+                        <thead>
+                            <tr className="border-b border-slate-800">
+                                <th className="text-left text-slate-400 font-medium px-5 py-4">Buyurtma</th>
+                                <th className="text-left text-slate-400 font-medium px-5 py-4">Mijoz</th>
+                                <th className="text-left text-slate-400 font-medium px-5 py-4">Holat</th>
+                                <th className="text-left text-slate-400 font-medium px-5 py-4">Vaqt</th>
+                                <th className="text-right text-slate-400 font-medium px-5 py-4">Summa</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {orders.length === 0 ? (
+                                <tr>
+                                    <td colSpan={5} className="px-5 py-8 text-center text-slate-400">
+                                        Buyurtmalar topilmadi
+                                    </td>
                                 </tr>
-                            </thead>
-                            <tbody>
-                                {orders.map((order) => (
-                                    <tr key={order.id} className="border-b last:border-0 hover:bg-zinc-50">
-                                        <td className="py-4 font-medium">{order.id}</td>
-                                        <td className="py-4">{order.customer}</td>
-                                        <td className="py-4">{order.product}</td>
-                                        <td className="py-4">{order.amount}</td>
-                                        <td className="py-4 text-zinc-500">{order.date}</td>
-                                        <td className="py-4">
-                                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${order.status === "Yetkazildi"
-                                                    ? "bg-green-100 text-green-700"
-                                                    : order.status === "Jarayonda"
-                                                        ? "bg-blue-100 text-blue-700"
-                                                        : "bg-yellow-100 text-yellow-700"
-                                                }`}>
-                                                {order.status}
-                                            </span>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </CardContent>
-            </Card>
+                            ) : (
+                                orders.map((order) => {
+                                    const statusInfo = statusMap[order.status] || { label: order.status, color: "bg-gray-500" }
+                                    return (
+                                        <tr key={order.id} className="border-b border-slate-800 last:border-0 hover:bg-slate-800/50 transition-colors">
+                                            <td className="px-5 py-4">
+                                                <div className="text-white font-medium">#{order.id.slice(0, 8)}</div>
+                                                <div className="text-slate-400 text-sm">{order.items.length} ta mahsulot</div>
+                                            </td>
+                                            <td className="px-5 py-4">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-8 h-8 bg-slate-700 rounded-full flex items-center justify-center text-white text-sm font-medium">
+                                                        {order.user.fullName?.charAt(0) || "?"}
+                                                    </div>
+                                                    <div>
+                                                        <div className="text-white">{order.user.fullName || "Noma&apos;lum"}</div>
+                                                        {order.user.phone && (
+                                                            <div className="text-slate-400 text-xs">{order.user.phone}</div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="px-5 py-4">
+                                                <select
+                                                    value={order.status}
+                                                    onChange={(e) => handleStatusChange(order.id, e.target.value)}
+                                                    className={`${statusInfo.color} text-white text-xs px-3 py-1 rounded-full border-none outline-none cursor-pointer`}
+                                                >
+                                                    {Object.entries(statusMap).map(([key, val]) => (
+                                                        <option key={key} value={key}>{val.label}</option>
+                                                    ))}
+                                                </select>
+                                            </td>
+                                            <td className="px-5 py-4">
+                                                <div className="flex items-center gap-1 text-slate-400 text-sm">
+                                                    <Clock className="h-4 w-4" />
+                                                    {timeAgo(order.createdAt)}
+                                                </div>
+                                            </td>
+                                            <td className="px-5 py-4 text-right">
+                                                <span className="text-white font-semibold">
+                                                    {(order.totalAmount + order.deliveryFee).toLocaleString()} so&apos;m
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    )
+                                })
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     )
 }

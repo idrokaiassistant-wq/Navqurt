@@ -2,95 +2,148 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { signOut } from "next-auth/react"
 import { cn } from "@/lib/utils"
 import {
     LayoutDashboard,
-    ShoppingCart,
+    ClipboardList,
+    Package,
+    FolderOpen,
     Users,
     Settings,
     LogOut,
     Menu,
-    X
+    ChevronRight,
+    Sun,
+    Bell,
+    Warehouse
 } from "lucide-react"
-import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { useState } from "react"
 
 const navItems = [
-    { href: "/dashboard", label: "Boshqaruv paneli", icon: LayoutDashboard },
-    { href: "/dashboard/orders", label: "Buyurtmalar", icon: ShoppingCart },
-    { href: "/dashboard/customers", label: "Mijozlar", icon: Users },
-    { href: "/dashboard/settings", label: "Sozlamalar", icon: Settings },
+    { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, badge: null },
+    { href: "/dashboard/orders", label: "Buyurtmalar", icon: ClipboardList, badge: 12 },
+    { href: "/dashboard/warehouse", label: "Omborxona", icon: Warehouse, badge: null },
+    { href: "/dashboard/products", label: "Mahsulotlar", icon: Package, badge: null },
+    { href: "/dashboard/categories", label: "Kategoriyalar", icon: FolderOpen, badge: null },
+    { href: "/dashboard/customers", label: "Mijozlar", icon: Users, badge: null },
+    { href: "/dashboard/settings", label: "Sozlamalar", icon: Settings, badge: null },
 ]
 
-export function Sidebar() {
-    const pathname = usePathname()
-    const [open, setOpen] = useState(false)
-
-    const NavContent = () => (
-        <div className="flex flex-col h-full">
+function NavContent({ 
+    pathname, 
+    setOpen, 
+    handleLogout 
+}: { 
+    pathname: string; 
+    setOpen: (open: boolean) => void; 
+    handleLogout: () => void 
+}) {
+    return (
+        <div className="flex flex-col h-full bg-slate-900">
             {/* Logo */}
-            <div className="p-6 border-b">
-                <h1 className="text-2xl font-bold text-zinc-900 dark:text-white">
-                    Navqurt
-                </h1>
-                <p className="text-sm text-zinc-500">Admin Panel</p>
+            <div className="p-6 flex items-center gap-3">
+                <div className="w-12 h-12 bg-amber-400 rounded-xl flex items-center justify-center">
+                    <span className="text-2xl">🧀</span>
+                </div>
+                <div>
+                    <h1 className="text-xl font-bold text-white">NAVQURT</h1>
+                    <p className="text-sm text-slate-400">Admin Panel</p>
+                </div>
             </div>
 
             {/* Navigation */}
-            <nav className="flex-1 p-4 space-y-2">
+            <nav className="flex-1 px-4 py-2 space-y-1">
                 {navItems.map((item) => {
                     const Icon = item.icon
-                    const isActive = pathname === item.href || pathname.startsWith(item.href + "/")
+                    const isActive = pathname === item.href ||
+                        (item.href !== "/dashboard" && pathname.startsWith(item.href))
+                    const isDashboard = item.href === "/dashboard" && pathname === "/dashboard"
+
                     return (
                         <Link
                             key={item.href}
                             href={item.href}
                             onClick={() => setOpen(false)}
                             className={cn(
-                                "flex items-center gap-3 px-4 py-3 rounded-lg transition-colors",
-                                isActive
-                                    ? "bg-zinc-900 text-white"
-                                    : "text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
+                                "flex items-center justify-between px-4 py-3 rounded-xl transition-all",
+                                isActive || isDashboard
+                                    ? "bg-slate-800 text-white"
+                                    : "text-slate-400 hover:bg-slate-800/50 hover:text-white"
                             )}
                         >
-                            <Icon className="h-5 w-5" />
-                            {item.label}
+                            <div className="flex items-center gap-3">
+                                <Icon className="h-5 w-5" />
+                                <span>{item.label}</span>
+                            </div>
+                            {item.badge ? (
+                                <span className="bg-blue-500 text-white text-xs px-2 py-0.5 rounded-full">
+                                    {item.badge}
+                                </span>
+                            ) : isDashboard ? (
+                                <ChevronRight className="h-4 w-4" />
+                            ) : null}
                         </Link>
                     )
                 })}
             </nav>
 
             {/* Logout */}
-            <div className="p-4 border-t">
-                <Link
-                    href="/login"
-                    className="flex items-center gap-3 px-4 py-3 rounded-lg text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+            <div className="p-4 border-t border-slate-800">
+                <button
+                    onClick={handleLogout}
+                    className="flex items-center gap-3 px-4 py-3 w-full rounded-xl text-slate-400 hover:bg-slate-800/50 hover:text-white transition-all"
                 >
                     <LogOut className="h-5 w-5" />
-                    Chiqish
-                </Link>
+                    <span>Chiqish</span>
+                </button>
             </div>
         </div>
     )
+}
+
+export function Sidebar() {
+    const pathname = usePathname()
+    const [open, setOpen] = useState(false)
+
+    const handleLogout = () => {
+        signOut({ callbackUrl: "/login" })
+    }
 
     return (
         <>
-            {/* Mobile Menu Button */}
-            <Sheet open={open} onOpenChange={setOpen}>
-                <SheetTrigger asChild className="lg:hidden fixed top-4 left-4 z-50">
-                    <Button variant="outline" size="icon">
-                        <Menu className="h-5 w-5" />
-                    </Button>
-                </SheetTrigger>
-                <SheetContent side="left" className="p-0 w-72">
-                    <NavContent />
-                </SheetContent>
-            </Sheet>
+            {/* Mobile Header */}
+            <div className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-slate-900 border-b border-slate-800 px-4 py-3 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                    <Sheet open={open} onOpenChange={setOpen}>
+                        <SheetTrigger asChild>
+                            <button className="p-2 text-slate-400 hover:text-white">
+                                <Menu className="h-6 w-6" />
+                            </button>
+                        </SheetTrigger>
+                        <SheetContent side="left" className="p-0 w-72 border-slate-800">
+                            <NavContent pathname={pathname} setOpen={setOpen} handleLogout={handleLogout} />
+                        </SheetContent>
+                    </Sheet>
+                    <span className="text-lg font-semibold text-white">Dashboard</span>
+                </div>
+                <div className="flex items-center gap-2">
+                    <button className="p-2 bg-slate-800 rounded-full text-amber-400">
+                        <Sun className="h-5 w-5" />
+                    </button>
+                    <button className="p-2 relative text-slate-400">
+                        <Bell className="h-5 w-5" />
+                        <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
+                            3
+                        </span>
+                    </button>
+                </div>
+            </div>
 
             {/* Desktop Sidebar */}
-            <aside className="hidden lg:flex lg:w-72 lg:flex-col lg:fixed lg:inset-y-0 bg-white dark:bg-zinc-900 border-r">
-                <NavContent />
+            <aside className="hidden lg:flex lg:w-72 lg:flex-col lg:fixed lg:inset-y-0 border-r border-slate-800">
+                <NavContent pathname={pathname} setOpen={setOpen} handleLogout={handleLogout} />
             </aside>
         </>
     )

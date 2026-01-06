@@ -2,8 +2,10 @@ import NextAuth from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
 import { prisma } from "@/lib/prisma"
 import bcrypt from "bcryptjs"
+import { DEV_ADMIN_EMAIL, DEV_ADMIN_PASSWORD, getAuthSecret } from "@/lib/auth"
 
 const handler = NextAuth({
+    secret: getAuthSecret(),
     providers: [
         CredentialsProvider({
             name: "credentials",
@@ -16,7 +18,24 @@ const handler = NextAuth({
                     throw new Error("Email va parol kiritilishi shart")
                 }
 
-                const user = await prisma.user.findUnique({
+                // Agar DB sozlanmagan bo'lsa (dev), env orqali admin login
+                if (!prisma) {
+                    if (
+                        credentials.email === DEV_ADMIN_EMAIL &&
+                        credentials.password === DEV_ADMIN_PASSWORD
+                    ) {
+                        return {
+                            id: "dev-admin",
+                            email: DEV_ADMIN_EMAIL,
+                            name: "Admin",
+                            role: "admin"
+                        }
+                    }
+
+                    throw new Error("DATABASE_URL yo'q. Dev uchun ADMIN_EMAIL/ADMIN_PASSWORD bilan kiring.")
+                }
+
+                const user = await prisma.adminUser.findUnique({
                     where: { email: credentials.email }
                 })
 
@@ -26,7 +45,7 @@ const handler = NextAuth({
 
                 const isPasswordValid = await bcrypt.compare(
                     credentials.password,
-                    user.password
+                    user.passwordHash
                 )
 
                 if (!isPasswordValid) {

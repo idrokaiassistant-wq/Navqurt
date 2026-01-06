@@ -31,6 +31,11 @@ enum TasteType {
   SHOKOLADLI
 }
 
+enum StockMovementType {
+  IN
+  OUT
+}
+
 model User {
   id          String   @id @default(uuid())
   telegramId  BigInt   @unique
@@ -43,6 +48,24 @@ model User {
   region      Region?  @relation(fields: [regionId], references: [id])
 }
 
+model AdminUser {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  name         String?
+  role         String   @default("admin")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Category {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  color     String?
+  createdAt DateTime @default(now())
+  products  ProductCategory[]
+}
+
 model Product {
   id          String   @id @default(uuid())
   name        String
@@ -53,6 +76,18 @@ model Product {
   createdAt   DateTime @default(now())
   variants    Variant[]
   orderItems  OrderItem[]
+  categories  ProductCategory[]
+}
+
+model ProductCategory {
+  productId  String
+  categoryId String
+  createdAt  DateTime @default(now())
+
+  product   Product  @relation(fields: [productId], references: [id])
+  category  Category @relation(fields: [categoryId], references: [id])
+
+  @@id([productId, categoryId])
 }
 
 model Variant {
@@ -99,4 +134,31 @@ model OrderItem {
   order     Order   @relation(fields: [orderId], references: [id])
   product   Product @relation(fields: [productId], references: [id])
   variant   Variant? @relation(fields: [variantId], references: [id])
+}
+
+model StockItem {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  current     Float    @default(0)
+  unit        String   @default("kg")
+  minRequired Float    @default(0)
+  price       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  movements   StockMovement[]
+}
+
+model StockMovement {
+  id      String            @id @default(uuid())
+  type    StockMovementType
+  itemId  String
+  amount  Float
+  unit    String
+  price   Int?
+  note    String?
+  date    DateTime @default(now())
+
+  item StockItem @relation(fields: [itemId], references: [id])
+
+  @@index([itemId, date])
 }

@@ -5,9 +5,11 @@ import { signIn } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { Shield, User, Lock, Eye, EyeOff, ArrowLeft } from "lucide-react"
 import Link from "next/link"
+import { SplashScreen } from "@/components/splash-screen"
 
 export default function LoginPage() {
     const router = useRouter()
+    const [showSplash, setShowSplash] = useState(true)
     const [login, setLogin] = useState("")
     const [password, setPassword] = useState("")
     const [showPassword, setShowPassword] = useState(false)
@@ -32,15 +34,20 @@ export default function LoginPage() {
                 router.push("/dashboard")
                 router.refresh()
             }
-        } catch (err) {
+        } catch {
             setError("Xatolik yuz berdi")
         } finally {
             setLoading(false)
         }
     }
 
+    // Show splash screen first
+    if (showSplash) {
+        return <SplashScreen onComplete={() => setShowSplash(false)} />
+    }
+
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex flex-col">
+        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex flex-col animate-fade-in">
             {/* Back Button */}
             <div className="p-6">
                 <Link
@@ -54,7 +61,7 @@ export default function LoginPage() {
 
             {/* Login Card */}
             <div className="flex-1 flex items-center justify-center px-4 pb-20">
-                <div className="w-full max-w-md">
+                <div className="w-full max-w-md animate-slide-up">
                     {/* Glass Card */}
                     <div className="bg-slate-800/50 backdrop-blur-xl border border-slate-700/50 rounded-3xl p-8 shadow-2xl">
                         {/* Shield Icon */}
@@ -74,7 +81,7 @@ export default function LoginPage() {
                         <form onSubmit={handleSubmit} className="space-y-5">
                             {/* Error Message */}
                             {error && (
-                                <div className="p-3 text-sm text-red-400 bg-red-500/10 border border-red-500/20 rounded-xl">
+                                <div className="p-3 text-sm text-red-400 bg-red-500/10 border border-red-500/20 rounded-xl animate-shake">
                                     {error}
                                 </div>
                             )}
