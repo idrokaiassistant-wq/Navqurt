@@ -7,6 +7,12 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
+interface Category {
+    id: string
+    name: string
+    color: string | null
+}
+
 interface Product {
     id: string
     name: string
@@ -15,18 +21,22 @@ interface Product {
     weight: number
     isActive: boolean
     createdAt: string
+    categoryIds?: string[]
+    categoryNames?: string[]
 }
 
 export default function ProductsPage() {
     const [products, setProducts] = useState<Product[]>([])
+    const [categories, setCategories] = useState<Category[]>([])
     const [loading, setLoading] = useState(true)
     const [isAddOpen, setIsAddOpen] = useState(false)
     const [isEditOpen, setIsEditOpen] = useState(false)
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
-    const [formData, setFormData] = useState({ name: "", description: "", price: "", weight: "" })
+    const [formData, setFormData] = useState({ name: "", description: "", price: "", weight: "", categoryIds: [] as string[] })
 
     useEffect(() => {
         fetchProducts()
+        fetchCategories()
     }, [])
 
     const fetchProducts = async () => {
@@ -46,6 +56,18 @@ export default function ProductsPage() {
         }
     }
 
+    const fetchCategories = async () => {
+        try {
+            const res = await fetch("/api/admin/categories", { cache: "no-store" })
+            if (res.ok) {
+                const data = await res.json()
+                setCategories(data.categories ?? [])
+            }
+        } catch (error) {
+            console.error("Failed to fetch categories:", error)
+        }
+    }
+
     const handleAdd = async () => {
         try {
             const res = await fetch("/api/admin/products", {
@@ -56,7 +78,7 @@ export default function ProductsPage() {
             if (res.ok) {
                 await fetchProducts()
                 setIsAddOpen(false)
-                setFormData({ name: "", description: "", price: "", weight: "" })
+                setFormData({ name: "", description: "", price: "", weight: "", categoryIds: [] })
             }
         } catch (error) {
             console.error("Failed to add product:", error)
@@ -82,7 +104,7 @@ export default function ProductsPage() {
     }
 
     const handleDelete = async (id: string) => {
-        if (!confirm("Mahsulotni o&apos;chirmoqchimisiz?")) return
+        if (!confirm("Mahsulotni o'chirmoqchimisiz?")) return
         try {
             const res = await fetch(`/api/admin/products/${id}`, { method: "DELETE" })
             if (res.ok) {
@@ -99,14 +121,86 @@ export default function ProductsPage() {
             name: product.name,
             description: product.description || "",
             price: product.price.toString(),
-            weight: product.weight.toString()
+            weight: product.weight.toString(),
+            categoryIds: product.categoryIds || []
         })
         setIsEditOpen(true)
+    }
+
+    const toggleCategory = (categoryId: string) => {
+        setFormData(prev => ({
+            ...prev,
+            categoryIds: prev.categoryIds.includes(categoryId)
+                ? prev.categoryIds.filter(id => id !== categoryId)
+                : [...prev.categoryIds, categoryId]
+        }))
     }
 
     if (loading) {
         return <div className="text-white">Yuklanmoqda...</div>
     }
+
+    const ProductForm = () => (
+        <div className="space-y-4">
+            <div>
+                <Label>Nomi</Label>
+                <Input
+                    className="bg-slate-800 border-slate-700"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                />
+            </div>
+            <div>
+                <Label>Tavsif</Label>
+                <Input
+                    className="bg-slate-800 border-slate-700"
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+                <div>
+                    <Label>Narx (so&apos;m)</Label>
+                    <Input
+                        type="number"
+                        className="bg-slate-800 border-slate-700"
+                        value={formData.price}
+                        onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                    />
+                </div>
+                <div>
+                    <Label>Og&apos;irlik (g)</Label>
+                    <Input
+                        type="number"
+                        className="bg-slate-800 border-slate-700"
+                        value={formData.weight}
+                        onChange={(e) => setFormData({ ...formData, weight: e.target.value })}
+                    />
+                </div>
+            </div>
+            <div>
+                <Label>Kategoriyalar</Label>
+                <div className="flex flex-wrap gap-2 mt-2">
+                    {categories.map(cat => (
+                        <button
+                            key={cat.id}
+                            type="button"
+                            onClick={() => toggleCategory(cat.id)}
+                            className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${formData.categoryIds.includes(cat.id)
+                                    ? "bg-blue-500 text-white"
+                                    : "bg-slate-700 text-slate-300 hover:bg-slate-600"
+                                }`}
+                        >
+                            {cat.name}
+                        </button>
+                    ))}
+                    {categories.length === 0 && (
+                        <span className="text-slate-400 text-sm">Kategoriyalar mavjud emas</span>
+                    )}
+                </div>
+            </div>
+        </div>
+    )
 
     return (
         <div className="space-y-6">
@@ -118,7 +212,10 @@ export default function ProductsPage() {
                 <div className="flex items-center gap-3">
                     <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
                         <DialogTrigger asChild>
-                            <button className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-xl flex items-center gap-2 transition-colors">
+                            <button
+                                onClick={() => setFormData({ name: "", description: "", price: "", weight: "", categoryIds: [] })}
+                                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-xl flex items-center gap-2 transition-colors"
+                            >
                                 <Plus className="h-5 w-5" />
                                 Qo&apos;shish
                             </button>
@@ -127,47 +224,10 @@ export default function ProductsPage() {
                             <DialogHeader>
                                 <DialogTitle>Yangi mahsulot</DialogTitle>
                             </DialogHeader>
-                            <div className="space-y-4">
-                                <div>
-                                    <Label>Nomi</Label>
-                                    <Input
-                                        className="bg-slate-800 border-slate-700"
-                                        value={formData.name}
-                                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                    />
-                                </div>
-                                <div>
-                                    <Label>Tavsif</Label>
-                                    <Input
-                                        className="bg-slate-800 border-slate-700"
-                                        value={formData.description}
-                                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                    />
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <Label>Narx (so&apos;m)</Label>
-                                        <Input
-                                            type="number"
-                                            className="bg-slate-800 border-slate-700"
-                                            value={formData.price}
-                                            onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                                        />
-                                    </div>
-                                    <div>
-                                        <Label>Og&apos;irlik (g)</Label>
-                                        <Input
-                                            type="number"
-                                            className="bg-slate-800 border-slate-700"
-                                            value={formData.weight}
-                                            onChange={(e) => setFormData({ ...formData, weight: e.target.value })}
-                                        />
-                                    </div>
-                                </div>
-                                <Button onClick={handleAdd} className="w-full bg-blue-500 hover:bg-blue-600">
-                                    Qo&apos;shish
-                                </Button>
-                            </div>
+                            <ProductForm />
+                            <Button onClick={handleAdd} className="w-full bg-blue-500 hover:bg-blue-600">
+                                Qo&apos;shish
+                            </Button>
                         </DialogContent>
                     </Dialog>
                 </div>
@@ -199,9 +259,18 @@ export default function ProductsPage() {
                         <p className="text-2xl font-bold text-white mb-3">
                             {product.price.toLocaleString()} <span className="text-sm text-slate-400">so&apos;m</span>
                         </p>
-                        <div className="text-sm text-slate-400">
+                        <div className="text-sm text-slate-400 mb-3">
                             Og&apos;irlik: <span className="text-white">{product.weight}g</span>
                         </div>
+                        {product.categoryNames && product.categoryNames.length > 0 && (
+                            <div className="flex flex-wrap gap-1">
+                                {product.categoryNames.map((name, i) => (
+                                    <span key={i} className="px-2 py-0.5 bg-slate-700 rounded-lg text-xs text-slate-300">
+                                        {name}
+                                    </span>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 ))}
             </div>
@@ -212,47 +281,10 @@ export default function ProductsPage() {
                     <DialogHeader>
                         <DialogTitle>Mahsulotni tahrirlash</DialogTitle>
                     </DialogHeader>
-                    <div className="space-y-4">
-                        <div>
-                            <Label>Nomi</Label>
-                            <Input
-                                className="bg-slate-800 border-slate-700"
-                                value={formData.name}
-                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                            />
-                        </div>
-                        <div>
-                            <Label>Tavsif</Label>
-                            <Input
-                                className="bg-slate-800 border-slate-700"
-                                value={formData.description}
-                                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                            />
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <Label>Narx (so&apos;m)</Label>
-                                <Input
-                                    type="number"
-                                    className="bg-slate-800 border-slate-700"
-                                    value={formData.price}
-                                    onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                                />
-                            </div>
-                            <div>
-                                <Label>Og&apos;irlik (g)</Label>
-                                <Input
-                                    type="number"
-                                    className="bg-slate-800 border-slate-700"
-                                    value={formData.weight}
-                                    onChange={(e) => setFormData({ ...formData, weight: e.target.value })}
-                                />
-                            </div>
-                        </div>
-                        <Button onClick={handleEdit} className="w-full bg-blue-500 hover:bg-blue-600">
-                            Saqlash
-                        </Button>
-                    </div>
+                    <ProductForm />
+                    <Button onClick={handleEdit} className="w-full bg-blue-500 hover:bg-blue-600">
+                        Saqlash
+                    </Button>
                 </DialogContent>
             </Dialog>
         </div>

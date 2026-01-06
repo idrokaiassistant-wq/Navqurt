@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import { Plus, Search, Trash2 } from "lucide-react"
+import { Plus, Search, Trash2, Edit2 } from "lucide-react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -22,6 +22,11 @@ export default function CategoriesPage() {
     const [query, setQuery] = useState("")
     const [isAddOpen, setIsAddOpen] = useState(false)
     const [newCategory, setNewCategory] = useState({ name: "", color: "" })
+
+    // Edit state
+    const [isEditOpen, setIsEditOpen] = useState(false)
+    const [editCategory, setEditCategory] = useState<ApiCategory | null>(null)
+    const [editForm, setEditForm] = useState({ name: "", color: "" })
 
     const load = async () => {
         setLoading(true)
@@ -72,6 +77,37 @@ export default function CategoriesPage() {
             if (!res.ok) throw new Error(data?.error ?? "Xatolik")
             setNewCategory({ name: "", color: "" })
             setIsAddOpen(false)
+            await load()
+        } catch (e) {
+            setError(String(e))
+        }
+    }
+
+    const openEditModal = (cat: ApiCategory) => {
+        setEditCategory(cat)
+        setEditForm({ name: cat.name, color: cat.color ?? "" })
+        setIsEditOpen(true)
+    }
+
+    const handleEdit = async () => {
+        if (!editCategory) return
+        try {
+            const payload = {
+                name: editForm.name.trim(),
+                color: editForm.color.trim() || null,
+            }
+            const res = await fetch(`/api/admin/categories/${editCategory.id}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload),
+            })
+            if (!res.ok) {
+                const data = await res.json()
+                throw new Error(data?.error ?? "Xatolik")
+            }
+            setEditCategory(null)
+            setEditForm({ name: "", color: "" })
+            setIsEditOpen(false)
             await load()
         } catch (e) {
             setError(String(e))
@@ -163,21 +199,29 @@ export default function CategoriesPage() {
                                     <p className="text-slate-400 text-sm">ID: {cat.id.slice(0, 8)}...</p>
                                 </div>
                             </div>
-                            <button
-                                className="p-2 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors"
-                                onClick={async () => {
-                                    if (!confirm(`"${cat.name}" kategoriyasini o'chirmoqchimisiz?`)) return
-                                    try {
-                                        const res = await fetch(`/api/admin/categories/${cat.id}`, { method: "DELETE" })
-                                        if (!res.ok) throw new Error("Xatolik")
-                                        await load()
-                                    } catch (e) {
-                                        setError(String(e))
-                                    }
-                                }}
-                            >
-                                <Trash2 className="h-4 w-4" />
-                            </button>
+                            <div className="flex items-center gap-1">
+                                <button
+                                    className="p-2 text-slate-400 hover:text-blue-400 hover:bg-blue-500/10 rounded-lg transition-colors"
+                                    onClick={() => openEditModal(cat)}
+                                >
+                                    <Edit2 className="h-4 w-4" />
+                                </button>
+                                <button
+                                    className="p-2 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors"
+                                    onClick={async () => {
+                                        if (!confirm(`"${cat.name}" kategoriyasini o'chirmoqchimisiz?`)) return
+                                        try {
+                                            const res = await fetch(`/api/admin/categories/${cat.id}`, { method: "DELETE" })
+                                            if (!res.ok) throw new Error("Xatolik")
+                                            await load()
+                                        } catch (e) {
+                                            setError(String(e))
+                                        }
+                                    }}
+                                >
+                                    <Trash2 className="h-4 w-4" />
+                                </button>
+                            </div>
                         </div>
                         <div className="flex items-center justify-between pt-4 border-t border-slate-800">
                             <span className="text-slate-400">Yaratilgan</span>
@@ -186,6 +230,37 @@ export default function CategoriesPage() {
                     </div>
                 ))}
             </div>
+
+            {/* Edit Modal */}
+            <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
+                <DialogContent className="bg-slate-900 border-slate-800 text-white">
+                    <DialogHeader>
+                        <DialogTitle>Kategoriyani tahrirlash</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                        <div>
+                            <Label>Nomi</Label>
+                            <Input
+                                className="bg-slate-800 border-slate-700"
+                                value={editForm.name}
+                                onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                            />
+                        </div>
+                        <div>
+                            <Label>Rang class (ixtiyoriy)</Label>
+                            <Input
+                                className="bg-slate-800 border-slate-700"
+                                placeholder="masalan: bg-blue-500"
+                                value={editForm.color}
+                                onChange={(e) => setEditForm({ ...editForm, color: e.target.value })}
+                            />
+                        </div>
+                        <Button onClick={handleEdit} className="w-full bg-blue-500 hover:bg-blue-600">
+                            Saqlash
+                        </Button>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div>
     )
 }

@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server"
 import { getToken } from "next-auth/jwt"
+import { prisma } from "./prisma"
 
 export async function assertAdmin(request: NextRequest) {
     const token = await getToken({
@@ -12,4 +13,18 @@ export async function assertAdmin(request: NextRequest) {
     }
 
     return token
+}
+
+export async function getAdminFromRequest(request: NextRequest) {
+    const token = await assertAdmin(request)
+
+    const admin = await prisma.adminUser.findUnique({
+        where: { email: token.email as string }
+    })
+
+    if (!admin) {
+        throw new Error("Unauthorized")
+    }
+
+    return admin
 }

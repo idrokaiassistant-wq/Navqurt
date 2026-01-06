@@ -10,7 +10,25 @@ export async function PATCH(
         await assertAdmin(request)
         const { id } = await params
         const body = await request.json()
-        const { name, description, price, weight, isActive } = body
+        const { name, description, price, weight, isActive, categoryIds } = body
+
+        // If categoryIds provided, update categories
+        if (categoryIds !== undefined) {
+            // Delete existing category relationships
+            await prisma.productCategory.deleteMany({
+                where: { productId: id }
+            })
+
+            // Create new category relationships
+            if (categoryIds.length > 0) {
+                await prisma.productCategory.createMany({
+                    data: categoryIds.map((categoryId: string) => ({
+                        productId: id,
+                        categoryId
+                    }))
+                })
+            }
+        }
 
         const product = await prisma.product.update({
             where: { id },
@@ -20,10 +38,19 @@ export async function PATCH(
                 price: price ? parseInt(price) : undefined,
                 weight: weight ? parseInt(weight) : undefined,
                 isActive
+            },
+            include: {
+                categories: {
+                    include: { category: true }
+                }
             }
         })
 
-        return NextResponse.json(product)
+        return NextResponse.json({
+            ...product,
+            categoryIds: product.categories.map(pc => pc.categoryId),
+            categoryNames: product.categories.map(pc => pc.category.name)
+        })
     } catch (error: unknown) {
         if (error instanceof Error && error.message === "Unauthorized") {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
@@ -43,6 +70,11 @@ export async function DELETE(
         await assertAdmin(request)
         const { id } = await params
 
+        // Delete category relationships first
+        await prisma.productCategory.deleteMany({
+            where: { productId: id }
+        })
+
         await prisma.product.delete({
             where: { id }
         })
@@ -58,3 +90,4 @@ export async function DELETE(
         )
     }
 }
+
