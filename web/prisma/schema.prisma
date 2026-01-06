@@ -70,6 +70,7 @@ model Product {
   id          String   @id @default(uuid())
   name        String
   description String?
+  image       String?
   price       Int
   weight      Int
   isActive    Boolean  @default(true)

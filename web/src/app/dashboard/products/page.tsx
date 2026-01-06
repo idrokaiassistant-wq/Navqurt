@@ -1,11 +1,12 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { Plus, Edit2, Trash2 } from "lucide-react"
+import { useState, useEffect, useRef } from "react"
+import { Plus, Edit2, Trash2, Upload, X, Image as ImageIcon } from "lucide-react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import Image from "next/image"
 
 interface Category {
     id: string
@@ -17,6 +18,7 @@ interface Product {
     id: string
     name: string
     description?: string
+    image?: string
     price: number
     weight: number
     isActive: boolean
@@ -32,7 +34,9 @@ export default function ProductsPage() {
     const [isAddOpen, setIsAddOpen] = useState(false)
     const [isEditOpen, setIsEditOpen] = useState(false)
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
-    const [formData, setFormData] = useState({ name: "", description: "", price: "", weight: "", categoryIds: [] as string[] })
+    const [formData, setFormData] = useState({ name: "", description: "", price: "", weight: "", categoryIds: [] as string[], image: "" })
+    const [uploading, setUploading] = useState(false)
+    const fileInputRef = useRef<HTMLInputElement>(null)
 
     useEffect(() => {
         fetchProducts()
@@ -68,6 +72,46 @@ export default function ProductsPage() {
         }
     }
 
+    const handleImageUpload = async (file: File) => {
+        setUploading(true)
+        try {
+            const formDataUpload = new FormData()
+            formDataUpload.append("file", file)
+
+            const res = await fetch("/api/admin/upload", {
+                method: "POST",
+                body: formDataUpload
+            })
+
+            if (res.ok) {
+                const data = await res.json()
+                setFormData(prev => ({ ...prev, image: data.url }))
+            } else {
+                const error = await res.json()
+                alert(error.error || "Rasm yuklashda xatolik")
+            }
+        } catch (error) {
+            console.error("Failed to upload image:", error)
+            alert("Rasm yuklashda xatolik")
+        } finally {
+            setUploading(false)
+        }
+    }
+
+    const handleRemoveImage = async () => {
+        if (formData.image) {
+            const filename = formData.image.split("/").pop()
+            if (filename) {
+                try {
+                    await fetch(`/api/admin/upload/${filename}`, { method: "DELETE" })
+                } catch (error) {
+                    console.error("Failed to delete image:", error)
+                }
+            }
+            setFormData(prev => ({ ...prev, image: "" }))
+        }
+    }
+
     const handleAdd = async () => {
         try {
             const res = await fetch("/api/admin/products", {
@@ -78,7 +122,7 @@ export default function ProductsPage() {
             if (res.ok) {
                 await fetchProducts()
                 setIsAddOpen(false)
-                setFormData({ name: "", description: "", price: "", weight: "", categoryIds: [] })
+                setFormData({ name: "", description: "", price: "", weight: "", categoryIds: [], image: "" })
             }
         } catch (error) {
             console.error("Failed to add product:", error)
@@ -104,7 +148,21 @@ export default function ProductsPage() {
     }
 
     const handleDelete = async (id: string) => {
+        const product = products.find(p => p.id === id)
         if (!confirm("Mahsulotni o'chirmoqchimisiz?")) return
+
+        // Delete image if exists
+        if (product?.image) {
+            const filename = product.image.split("/").pop()
+            if (filename) {
+                try {
+                    await fetch(`/api/admin/upload/${filename}`, { method: "DELETE" })
+                } catch (error) {
+                    console.error("Failed to delete image:", error)
+                }
+            }
+        }
+
         try {
             const res = await fetch(`/api/admin/products/${id}`, { method: "DELETE" })
             if (res.ok) {
@@ -122,7 +180,8 @@ export default function ProductsPage() {
             description: product.description || "",
             price: product.price.toString(),
             weight: product.weight.toString(),
-            categoryIds: product.categoryIds || []
+            categoryIds: product.categoryIds || [],
+            image: product.image || ""
         })
         setIsEditOpen(true)
     }
@@ -142,6 +201,52 @@ export default function ProductsPage() {
 
     const ProductForm = () => (
         <div className="space-y-4">
+            {/* Image Upload */}
+            <div>
+                <Label>Mahsulot rasmi</Label>
+                <div className="mt-2">
+                    {formData.image ? (
+                        <div className="relative w-full h-40 bg-slate-800 rounded-xl overflow-hidden">
+                            <Image
+                                src={formData.image}
+                                alt="Product"
+                                fill
+                                className="object-cover"
+                            />
+                            <button
+                                type="button"
+                                onClick={handleRemoveImage}
+                                className="absolute top-2 right-2 p-1.5 bg-rose-500 text-white rounded-lg hover:bg-rose-600 transition-colors"
+                            >
+                                <X className="h-4 w-4" />
+                            </button>
+                        </div>
+                    ) : (
+                        <label className="flex flex-col items-center justify-center w-full h-40 bg-slate-800 border-2 border-dashed border-slate-600 rounded-xl cursor-pointer hover:border-blue-500 transition-colors">
+                            <input
+                                ref={fileInputRef}
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={(e) => {
+                                    const file = e.target.files?.[0]
+                                    if (file) handleImageUpload(file)
+                                }}
+                            />
+                            {uploading ? (
+                                <div className="text-slate-400">Yuklanmoqda...</div>
+                            ) : (
+                                <>
+                                    <Upload className="h-8 w-8 text-slate-400 mb-2" />
+                                    <span className="text-slate-400 text-sm">Rasm yuklash uchun bosing</span>
+                                    <span className="text-slate-500 text-xs mt-1">JPEG, PNG, WebP (max 5MB)</span>
+                                </>
+                            )}
+                        </label>
+                    )}
+                </div>
+            </div>
+
             <div>
                 <Label>Nomi</Label>
                 <Input
@@ -213,14 +318,14 @@ export default function ProductsPage() {
                     <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
                         <DialogTrigger asChild>
                             <button
-                                onClick={() => setFormData({ name: "", description: "", price: "", weight: "", categoryIds: [] })}
+                                onClick={() => setFormData({ name: "", description: "", price: "", weight: "", categoryIds: [], image: "" })}
                                 className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-xl flex items-center gap-2 transition-colors"
                             >
                                 <Plus className="h-5 w-5" />
                                 Qo&apos;shish
                             </button>
                         </DialogTrigger>
-                        <DialogContent className="bg-slate-900 border-slate-800 text-white">
+                        <DialogContent className="bg-slate-900 border-slate-800 text-white max-h-[90vh] overflow-y-auto">
                             <DialogHeader>
                                 <DialogTitle>Yangi mahsulot</DialogTitle>
                             </DialogHeader>
@@ -235,49 +340,64 @@ export default function ProductsPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {products.map((product) => (
-                    <div key={product.id} className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
-                        <div className="flex items-start justify-between mb-4">
-                            <div className="w-14 h-14 bg-amber-100 rounded-xl flex items-center justify-center">
-                                <span className="text-2xl">📦</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <button
-                                    onClick={() => openEditModal(product)}
-                                    className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
-                                >
-                                    <Edit2 className="h-4 w-4" />
-                                </button>
-                                <button
-                                    onClick={() => handleDelete(product.id)}
-                                    className="p-2 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors"
-                                >
-                                    <Trash2 className="h-4 w-4" />
-                                </button>
-                            </div>
+                    <div key={product.id} className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
+                        {/* Product Image */}
+                        <div className="relative w-full h-40 bg-slate-800">
+                            {product.image ? (
+                                <Image
+                                    src={product.image}
+                                    alt={product.name}
+                                    fill
+                                    className="object-cover"
+                                />
+                            ) : (
+                                <div className="w-full h-full flex items-center justify-center">
+                                    <ImageIcon className="h-12 w-12 text-slate-600" />
+                                </div>
+                            )}
                         </div>
-                        <h3 className="text-lg font-semibold text-white mb-1">{product.name}</h3>
-                        <p className="text-2xl font-bold text-white mb-3">
-                            {product.price.toLocaleString()} <span className="text-sm text-slate-400">so&apos;m</span>
-                        </p>
-                        <div className="text-sm text-slate-400 mb-3">
-                            Og&apos;irlik: <span className="text-white">{product.weight}g</span>
-                        </div>
-                        {product.categoryNames && product.categoryNames.length > 0 && (
-                            <div className="flex flex-wrap gap-1">
-                                {product.categoryNames.map((name, i) => (
-                                    <span key={i} className="px-2 py-0.5 bg-slate-700 rounded-lg text-xs text-slate-300">
-                                        {name}
-                                    </span>
-                                ))}
+
+                        <div className="p-5">
+                            <div className="flex items-start justify-between mb-2">
+                                <h3 className="text-lg font-semibold text-white">{product.name}</h3>
+                                <div className="flex items-center gap-1">
+                                    <button
+                                        onClick={() => openEditModal(product)}
+                                        className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
+                                    >
+                                        <Edit2 className="h-4 w-4" />
+                                    </button>
+                                    <button
+                                        onClick={() => handleDelete(product.id)}
+                                        className="p-2 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors"
+                                    >
+                                        <Trash2 className="h-4 w-4" />
+                                    </button>
+                                </div>
                             </div>
-                        )}
+                            <p className="text-2xl font-bold text-white mb-2">
+                                {product.price.toLocaleString()} <span className="text-sm text-slate-400">so&apos;m</span>
+                            </p>
+                            <div className="text-sm text-slate-400 mb-3">
+                                Og&apos;irlik: <span className="text-white">{product.weight}g</span>
+                            </div>
+                            {product.categoryNames && product.categoryNames.length > 0 && (
+                                <div className="flex flex-wrap gap-1">
+                                    {product.categoryNames.map((name, i) => (
+                                        <span key={i} className="px-2 py-0.5 bg-slate-700 rounded-lg text-xs text-slate-300">
+                                            {name}
+                                        </span>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
                     </div>
                 ))}
             </div>
 
             {/* Edit Modal */}
             <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-                <DialogContent className="bg-slate-900 border-slate-800 text-white">
+                <DialogContent className="bg-slate-900 border-slate-800 text-white max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle>Mahsulotni tahrirlash</DialogTitle>
                     </DialogHeader>
