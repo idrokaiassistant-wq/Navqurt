@@ -8,7 +8,7 @@ WORKDIR /app
 
 # Copy package files
 COPY web/package.json web/package-lock.json* ./
-COPY prisma ./prisma
+COPY web/prisma ./prisma
 
 # Install dependencies
 RUN npm ci
@@ -20,7 +20,7 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 # Generate Prisma Client
-RUN npx prisma generate --schema=./prisma/schema.prisma
+RUN npx prisma generate --schema=./web/prisma/schema.prisma
 
 # Build Next.js
 WORKDIR /app/web
@@ -41,7 +41,7 @@ RUN adduser --system --uid 1001 nextjs
 COPY --from=builder /app/web/public ./public
 COPY --from=builder /app/web/.next/standalone ./
 COPY --from=builder /app/web/.next/static ./web/.next/static
-COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/web/prisma ./prisma
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 
 # Set correct permissions

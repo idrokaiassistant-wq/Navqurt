@@ -18,3 +18,4 @@ jobs:
           echo "GitHub Actions orqali Dokploy'ga deploy qilish uchun webhook sozlang"
           echo "Yoki Dokploy UI'da GitHub integration'ni faollashtiring"
 
+
