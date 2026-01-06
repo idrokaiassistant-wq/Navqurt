@@ -3,7 +3,7 @@ import type { NextRequest } from "next/server"
 import { getToken } from "next-auth/jwt"
 import { getAuthSecret } from "@/lib/auth"
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
     let token: { role?: string } | null = null
     try {
         token = await getToken({
