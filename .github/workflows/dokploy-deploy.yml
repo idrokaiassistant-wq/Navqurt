@@ -1,0 +1,20 @@
+name: Dokploy Auto Deploy
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Notify Dokploy
+        run: |
+          echo "GitHub Actions orqali Dokploy'ga deploy qilish uchun webhook sozlang"
+          echo "Yoki Dokploy UI'da GitHub integration'ni faollashtiring"
+

@@ -1,0 +1,35 @@
+# Dokploy deployment configuration
+# Bu fayl Dokploy'da GitHub integration sozlashda yordam beradi
+
+version: '1.0'
+
+# GitHub repository ma'lumotlari
+repository:
+  url: https://github.com/idrokaiassistant-wq/Navqurt.git
+  branch: main
+
+# Build sozlamalari
+build:
+  context: .
+  dockerfile: web/Dockerfile
+  
+# Environment variables (Dokploy UI'da sozlanadi)
+# Quyidagilar .env faylda bo'lishi kerak:
+# - DATABASE_URL
+# - NEXTAUTH_SECRET
+# - NEXTAUTH_URL
+# - ADMIN_EMAIL (ixtiyoriy)
+# - ADMIN_PASSWORD (ixtiyoriy)
+
+# Port sozlamalari
+ports:
+  - "3000:3000"
+
+# Health check
+healthcheck:
+  test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+  interval: 30s
+  timeout: 10s
+  retries: 3
+  start_period: 40s
+
