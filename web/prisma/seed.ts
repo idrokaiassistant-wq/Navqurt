@@ -4,6 +4,8 @@ import bcrypt from "bcryptjs"
 const prisma = new PrismaClient()
 
 async function main() {
+    console.log("🌱 Database seed boshlandi...")
+
     // Delete existing admin user if exists
     await prisma.adminUser.deleteMany({
         where: { email: "admin@navqurt.uz" }
@@ -24,6 +26,7 @@ async function main() {
     console.log("✅ Admin foydalanuvchi yaratildi:")
     console.log(`   Email: ${admin.email}`)
     console.log(`   Parol: admin123`)
+    console.log("✅ Database seed yakunlandi!")
 }
 
 main()

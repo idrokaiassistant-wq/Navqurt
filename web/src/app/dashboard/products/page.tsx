@@ -31,10 +31,13 @@ export default function ProductsPage() {
 
     const fetchProducts = async () => {
         try {
-            const res = await fetch("/api/admin/products")
+            const res = await fetch("/api/admin/products", { cache: "no-store" })
             if (res.ok) {
                 const data = await res.json()
-                setProducts(data)
+                setProducts(data.products ?? [])
+            } else {
+                const errorData = await res.json().catch(() => ({}))
+                console.error("Failed to fetch products:", errorData.error || "Xatolik")
             }
         } catch (error) {
             console.error("Failed to fetch products:", error)

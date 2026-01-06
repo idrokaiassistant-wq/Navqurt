@@ -6,17 +6,28 @@ export async function GET(request: NextRequest) {
     try {
         await assertAdmin(request)
 
-        const customers = await prisma.user.findMany({
+        const users = await prisma.user.findMany({
             include: {
-                orders: true,
-                _count: {
-                    select: { orders: true }
+                orders: {
+                    include: {
+                        items: true
+                    }
                 }
             },
             orderBy: { createdAt: "desc" }
         })
 
-        return NextResponse.json(customers)
+        const customers = users.map(user => ({
+            id: user.id,
+            telegramId: user.telegramId.toString(),
+            fullName: user.fullName,
+            phone: user.phone,
+            createdAt: user.createdAt.toISOString(),
+            totalOrders: user.orders.length,
+            totalSpent: user.orders.reduce((sum, order) => sum + order.totalAmount + order.deliveryFee, 0)
+        }))
+
+        return NextResponse.json({ customers })
     } catch (error: unknown) {
         if (error instanceof Error && error.message === "Unauthorized") {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 })

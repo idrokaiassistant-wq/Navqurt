@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
             orderBy: { createdAt: "desc" }
         })
 
-        return NextResponse.json(orders)
+        return NextResponse.json({ orders })
     } catch (error: unknown) {
         if (error instanceof Error && error.message === "Unauthorized") {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 })

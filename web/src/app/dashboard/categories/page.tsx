@@ -28,8 +28,17 @@ export default function CategoriesPage() {
         setError("")
         try {
             const res = await fetch("/api/admin/categories", { cache: "no-store" })
+            if (!res.ok) {
+                const errorText = await res.text()
+                let errorData
+                try {
+                    errorData = JSON.parse(errorText)
+                } catch {
+                    throw new Error(errorText || "Xatolik yuz berdi")
+                }
+                throw new Error(errorData?.error ?? "Xatolik")
+            }
             const data = await res.json()
-            if (!res.ok) throw new Error(data?.error ?? "Xatolik")
             setCategories(data.categories ?? [])
         } catch (e) {
             setError(String(e))

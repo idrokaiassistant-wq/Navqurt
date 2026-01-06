@@ -37,10 +37,13 @@ export default function OrdersPage() {
 
     const fetchOrders = async () => {
         try {
-            const res = await fetch("/api/admin/orders")
+            const res = await fetch("/api/admin/orders", { cache: "no-store" })
             if (res.ok) {
                 const data = await res.json()
-                setOrders(data)
+                setOrders(data.orders ?? [])
+            } else {
+                const errorData = await res.json().catch(() => ({}))
+                console.error("Failed to fetch orders:", errorData.error || "Xatolik")
             }
         } catch (error) {
             console.error("Failed to fetch orders:", error)

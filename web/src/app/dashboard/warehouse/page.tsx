@@ -48,16 +48,16 @@ export default function WarehousePage() {
     const fetchData = async () => {
         try {
             const [itemsRes, movementsRes] = await Promise.all([
-                fetch("/api/admin/warehouse/items"),
-                fetch("/api/admin/warehouse/movements")
+                fetch("/api/admin/warehouse/items", { cache: "no-store" }),
+                fetch("/api/admin/warehouse/movements", { cache: "no-store" })
             ])
             if (itemsRes.ok) {
                 const data = await itemsRes.json()
-                setStockItems(data)
+                setStockItems(Array.isArray(data) ? data : [])
             }
             if (movementsRes.ok) {
                 const data = await movementsRes.json()
-                setMovements(data)
+                setMovements(Array.isArray(data) ? data : [])
             }
         } catch (error) {
             console.error("Failed to fetch warehouse data:", error)
@@ -127,9 +127,12 @@ export default function WarehousePage() {
 
     const lowStockItems = stockItems.filter(item => item.current <= item.minRequired)
     const totalStock = stockItems.reduce((acc, item) => item.unit === 'kg' ? acc + item.current : acc, 0)
-    const thisMonthIn = movements.filter(m => m.type === 'IN').reduce((acc, m) => m.stockItem.unit === 'kg' ? acc + m.amount : acc, 0)
-    const thisMonthOut = movements.filter(m => m.type === 'OUT').reduce((acc, m) => m.stockItem.unit === 'kg' ? acc + m.amount : acc, 0)
-    const totalExpenses = movements.filter(m => m.type === 'IN' && m.price).reduce((acc, m) => acc + (m.price || 0), 0)
+    const now = new Date()
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+    const thisMonthMovements = movements.filter(m => new Date(m.date) >= startOfMonth)
+    const thisMonthIn = thisMonthMovements.filter(m => m.type === 'IN').reduce((acc, m) => m.stockItem?.unit === 'kg' ? acc + m.amount : acc, 0)
+    const thisMonthOut = thisMonthMovements.filter(m => m.type === 'OUT').reduce((acc, m) => m.stockItem?.unit === 'kg' ? acc + m.amount : acc, 0)
+    const totalExpenses = thisMonthMovements.filter(m => m.type === 'IN' && m.price).reduce((acc, m) => acc + (m.price || 0), 0)
 
     const handleAddItem = () => {
         if (newItem.name) {
@@ -466,14 +469,14 @@ export default function WarehousePage() {
                                     </div>
                                     <div>
                                         <div className="text-white font-medium">
-                                            {movement.type === "IN" ? "Kirim" : "Chiqim"}: {movement.stockItem.name}
+                                            {movement.type === "IN" ? "Kirim" : "Chiqim"}: {movement.stockItem?.name || "Noma'lum"}
                                         </div>
                                         <div className="text-slate-400 text-sm">{timeAgo(movement.date)}</div>
                                     </div>
                                 </div>
                                 <div className="text-right">
                                     <div className={`font-medium ${movement.type === "IN" ? "text-emerald-400" : "text-rose-400"}`}>
-                                        {movement.type === "IN" ? "+" : "-"}{movement.amount} {movement.stockItem.unit}
+                                        {movement.type === "IN" ? "+" : "-"}{movement.amount} {movement.stockItem?.unit || ""}
                                     </div>
                                     {movement.price && (
                                         <div className="text-slate-400 text-sm">{formatPrice(movement.price)}</div>
