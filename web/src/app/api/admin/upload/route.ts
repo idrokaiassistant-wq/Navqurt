@@ -1,4 +1,3 @@
-```typescript
 import { NextRequest, NextResponse } from "next/server"
 import { assertAdmin } from "@/lib/api-auth"
 import cloudinary from "@/lib/cloudinary"
@@ -44,9 +43,9 @@ export async function POST(request: NextRequest) {
             ).end(buffer);
         }) as any;
 
-        return NextResponse.json({ 
-            url: uploadResponse.secure_url, 
-            public_id: uploadResponse.public_id 
+        return NextResponse.json({
+            url: uploadResponse.secure_url,
+            public_id: uploadResponse.public_id
         })
     } catch (error: unknown) {
         if (error instanceof Error && error.message === "Unauthorized") {
