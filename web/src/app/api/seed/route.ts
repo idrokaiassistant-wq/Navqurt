@@ -3,9 +3,10 @@ import { prisma } from "@/lib/prisma"
 import bcrypt from "bcryptjs"
 
 export async function POST() {
-    if (process.env.NODE_ENV === 'production') {
+    // Vaqtincha productionda ruxsat berildi
+    /* if (process.env.NODE_ENV === 'production') {
         return NextResponse.json({ message: "Not Found" }, { status: 404 });
-    }
+    } */
     try {
         if (!prisma) {
             return NextResponse.json(
