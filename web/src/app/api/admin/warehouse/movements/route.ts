@@ -43,23 +43,43 @@ export async function POST(request: NextRequest) {
             )
         }
 
+        // Validate amount
+        const amountNum = typeof amount === "string" ? parseFloat(amount) : typeof amount === "number" ? amount : NaN
+        if (isNaN(amountNum) || amountNum <= 0) {
+            return NextResponse.json({ error: "amount to'g'ri son bo'lishi kerak va 0 dan katta" }, { status: 400 })
+        }
+
+        // Validate type
+        if (type !== "IN" && type !== "OUT") {
+            return NextResponse.json({ error: "type 'IN' yoki 'OUT' bo'lishi kerak" }, { status: 400 })
+        }
+
         const newAmount = type === "IN"
-            ? stockItem.current + parseFloat(amount)
-            : stockItem.current - parseFloat(amount)
+            ? stockItem.current + amountNum
+            : stockItem.current - amountNum
 
         await prisma.stockItem.update({
             where: { id: itemId },
             data: { current: Math.max(0, newAmount) }
         })
 
+        // Validate price if provided
+        let priceNum: number | null = null
+        if (price !== undefined && price !== null) {
+            priceNum = typeof price === "string" ? parseInt(price, 10) : typeof price === "number" ? price : NaN
+            if (isNaN(priceNum) || priceNum < 0) {
+                return NextResponse.json({ error: "price to'g'ri son bo'lishi kerak va 0 dan katta yoki teng" }, { status: 400 })
+            }
+        }
+
         // Create movement record
         const movement = await prisma.stockMovement.create({
             data: {
                 type,
                 itemId,
-                amount: parseFloat(amount),
+                amount: amountNum,
                 unit: unit || stockItem.unit,
-                price: price ? parseInt(price) : null,
+                price: priceNum,
                 note
             },
             include: {

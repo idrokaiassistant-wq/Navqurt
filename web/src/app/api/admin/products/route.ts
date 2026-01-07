@@ -43,14 +43,26 @@ export async function POST(request: NextRequest) {
         const body = await request.json()
         const { name, description, image, imagePublicId, price, weight, isActive, categoryIds } = body
 
+        // Validate price
+        const priceNum = typeof price === "string" ? parseInt(price, 10) : typeof price === "number" ? price : NaN
+        if (isNaN(priceNum) || priceNum < 0) {
+            return NextResponse.json({ error: "price to'g'ri son bo'lishi kerak va 0 dan katta" }, { status: 400 })
+        }
+
+        // Validate weight
+        const weightNum = typeof weight === "string" ? parseInt(weight, 10) : typeof weight === "number" ? weight : NaN
+        if (isNaN(weightNum) || weightNum < 0) {
+            return NextResponse.json({ error: "weight to'g'ri son bo'lishi kerak va 0 dan katta" }, { status: 400 })
+        }
+
         const product = await prisma.product.create({
             data: {
                 name,
                 description,
                 image,
                 imagePublicId,
-                price: parseInt(price),
-                weight: parseInt(weight),
+                price: priceNum,
+                weight: weightNum,
                 isActive: isActive !== false,
                 categories: categoryIds?.length ? {
                     create: categoryIds.map((categoryId: string) => ({

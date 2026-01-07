@@ -37,3 +37,4 @@ git push
 
 **Eslatma**: Bu qoida har bir xatolik tuzatilgandan keyin avtomatik bajarilishi kerak.
 
+
