@@ -41,13 +41,14 @@ export async function POST(request: NextRequest) {
     try {
         await assertAdmin(request)
         const body = await request.json()
-        const { name, description, image, price, weight, isActive, categoryIds } = body
+        const { name, description, image, imagePublicId, price, weight, isActive, categoryIds } = body
 
         const product = await prisma.product.create({
             data: {
                 name,
                 description,
                 image,
+                imagePublicId,
                 price: parseInt(price),
                 weight: parseInt(weight),
                 isActive: isActive !== false,

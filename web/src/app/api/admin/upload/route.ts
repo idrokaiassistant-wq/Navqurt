@@ -1,19 +1,11 @@
+```typescript
 import { NextRequest, NextResponse } from "next/server"
-import { writeFile, mkdir } from "fs/promises"
-import { existsSync } from "fs"
-import path from "path"
 import { assertAdmin } from "@/lib/api-auth"
-
-const UPLOAD_DIR = path.join(process.cwd(), "public", "uploads")
+import cloudinary from "@/lib/cloudinary"
 
 export async function POST(request: NextRequest) {
     try {
         await assertAdmin(request)
-
-        // Ensure upload directory exists
-        if (!existsSync(UPLOAD_DIR)) {
-            await mkdir(UPLOAD_DIR, { recursive: true })
-        }
 
         const formData = await request.formData()
         const file = formData.get("file") as File | null
@@ -34,20 +26,28 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: "Fayl hajmi 5MB dan oshmasligi kerak" }, { status: 400 })
         }
 
-        // Generate unique filename
-        const timestamp = Date.now()
-        const ext = file.name.split(".").pop() || "jpg"
-        const filename = `${timestamp}-${Math.random().toString(36).substring(7)}.${ext}`
-        const filepath = path.join(UPLOAD_DIR, filename)
-
-        // Write file
+        // Convert file to Buffer
         const bytes = await file.arrayBuffer()
         const buffer = Buffer.from(bytes)
-        await writeFile(filepath, buffer)
 
-        const url = `/uploads/${filename}`
+        // Upload to Cloudinary using promise
+        const uploadResponse = await new Promise((resolve, reject) => {
+            cloudinary.uploader.upload_stream(
+                {
+                    folder: "navqurt_products",
+                    resource_type: "auto",
+                },
+                (error, result) => {
+                    if (error) reject(error);
+                    else resolve(result);
+                }
+            ).end(buffer);
+        }) as any;
 
-        return NextResponse.json({ url, filename })
+        return NextResponse.json({ 
+            url: uploadResponse.secure_url, 
+            public_id: uploadResponse.public_id 
+        })
     } catch (error: unknown) {
         if (error instanceof Error && error.message === "Unauthorized") {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 })

@@ -19,6 +19,7 @@ interface Product {
     name: string
     description?: string
     image?: string
+    imagePublicId?: string
     price: number
     weight: number
     isActive: boolean
@@ -34,7 +35,15 @@ export default function ProductsPage() {
     const [isAddOpen, setIsAddOpen] = useState(false)
     const [isEditOpen, setIsEditOpen] = useState(false)
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
-    const [formData, setFormData] = useState({ name: "", description: "", price: "", weight: "", categoryIds: [] as string[], image: "" })
+    const [formData, setFormData] = useState({
+        name: "",
+        description: "",
+        price: "",
+        weight: "",
+        categoryIds: [] as string[],
+        image: "",
+        imagePublicId: ""
+    })
     const [uploading, setUploading] = useState(false)
     const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -85,7 +94,11 @@ export default function ProductsPage() {
 
             if (res.ok) {
                 const data = await res.json()
-                setFormData(prev => ({ ...prev, image: data.url }))
+                setFormData(prev => ({
+                    ...prev,
+                    image: data.url,
+                    imagePublicId: data.public_id
+                }))
             } else {
                 const error = await res.json()
                 alert(error.error || "Rasm yuklashda xatolik")
@@ -99,16 +112,21 @@ export default function ProductsPage() {
     }
 
     const handleRemoveImage = async () => {
-        if (formData.image) {
-            const filename = formData.image.split("/").pop()
-            if (filename) {
-                try {
-                    await fetch(`/api/admin/upload/${filename}`, { method: "DELETE" })
-                } catch (error) {
-                    console.error("Failed to delete image:", error)
-                }
+        if (formData.imagePublicId) {
+            try {
+                // Bizda delete uchun endpoint /api/admin/upload/[filename] (u hozir public_id qabul qilyapti)
+                // Lekin u POST metodini kutyapti (Cloudinary destroy uchun)
+                await fetch(`/api/admin/upload/delete`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ public_id: formData.imagePublicId })
+                })
+            } catch (error) {
+                console.error("Failed to delete image:", error)
             }
-            setFormData(prev => ({ ...prev, image: "" }))
+            setFormData(prev => ({ ...prev, image: "", imagePublicId: "" }))
+        } else {
+            setFormData(prev => ({ ...prev, image: "", imagePublicId: "" }))
         }
     }
 
@@ -122,7 +140,7 @@ export default function ProductsPage() {
             if (res.ok) {
                 await fetchProducts()
                 setIsAddOpen(false)
-                setFormData({ name: "", description: "", price: "", weight: "", categoryIds: [], image: "" })
+                setFormData({ name: "", description: "", price: "", weight: "", categoryIds: [], image: "", imagePublicId: "" })
             }
         } catch (error) {
             console.error("Failed to add product:", error)
@@ -151,15 +169,16 @@ export default function ProductsPage() {
         const product = products.find(p => p.id === id)
         if (!confirm("Mahsulotni o'chirmoqchimisiz?")) return
 
-        // Delete image if exists
-        if (product?.image) {
-            const filename = product.image.split("/").pop()
-            if (filename) {
-                try {
-                    await fetch(`/api/admin/upload/${filename}`, { method: "DELETE" })
-                } catch (error) {
-                    console.error("Failed to delete image:", error)
-                }
+        // Delete image from Cloudinary if exists
+        if (product?.imagePublicId) {
+            try {
+                await fetch(`/api/admin/upload/delete`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ public_id: product.imagePublicId })
+                })
+            } catch (error) {
+                console.error("Failed to delete image:", error)
             }
         }
 
@@ -181,7 +200,8 @@ export default function ProductsPage() {
             price: product.price.toString(),
             weight: product.weight.toString(),
             categoryIds: product.categoryIds || [],
-            image: product.image || ""
+            image: product.image || "",
+            imagePublicId: product.imagePublicId || ""
         })
         setIsEditOpen(true)
     }
@@ -239,7 +259,7 @@ export default function ProductsPage() {
                                 <>
                                     <Upload className="h-8 w-8 text-slate-400 mb-2" />
                                     <span className="text-slate-400 text-sm">Rasm yuklash uchun bosing</span>
-                                    <span className="text-slate-500 text-xs mt-1">JPEG, PNG, WebP (max 5MB)</span>
+                                    <span className="text-slate-500 text-xs mt-1">Cloudinary (JPEG, PNG, WebP)</span>
                                 </>
                             )}
                         </label>
@@ -318,7 +338,7 @@ export default function ProductsPage() {
                     <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
                         <DialogTrigger asChild>
                             <button
-                                onClick={() => setFormData({ name: "", description: "", price: "", weight: "", categoryIds: [], image: "" })}
+                                onClick={() => setFormData({ name: "", description: "", price: "", weight: "", categoryIds: [], image: "", imagePublicId: "" })}
                                 className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-xl flex items-center gap-2 transition-colors"
                             >
                                 <Plus className="h-5 w-5" />

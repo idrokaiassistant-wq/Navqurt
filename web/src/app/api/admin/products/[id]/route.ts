@@ -10,7 +10,7 @@ export async function PATCH(
         await assertAdmin(request)
         const { id } = await params
         const body = await request.json()
-        const { name, description, image, price, weight, isActive, categoryIds } = body
+        const { name, description, image, imagePublicId, price, weight, isActive, categoryIds } = body
 
         // If categoryIds provided, update categories
         if (categoryIds !== undefined) {
@@ -36,6 +36,7 @@ export async function PATCH(
                 name,
                 description,
                 image,
+                imagePublicId,
                 price: price ? parseInt(price) : undefined,
                 weight: weight ? parseInt(weight) : undefined,
                 isActive

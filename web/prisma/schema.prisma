@@ -71,6 +71,7 @@ model Product {
   name        String
   description String?
   image       String?
+  imagePublicId String?
   price       Int
   weight      Int
   isActive    Boolean  @default(true)
