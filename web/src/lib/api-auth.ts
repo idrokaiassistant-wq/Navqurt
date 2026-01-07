@@ -1,11 +1,12 @@
 import { NextRequest } from "next/server"
 import { getToken } from "next-auth/jwt"
 import { prisma } from "./prisma"
+import { getAuthSecret } from "./auth"
 
 export async function assertAdmin(request: NextRequest) {
     const token = await getToken({
         req: request,
-        secret: process.env.NEXTAUTH_SECRET || "dev-secret-navqurt-2026"
+        secret: getAuthSecret()
     })
 
     if (!token || token.role !== "admin") {

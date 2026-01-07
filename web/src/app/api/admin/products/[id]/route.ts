@@ -30,6 +30,24 @@ export async function PATCH(
             }
         }
 
+        // Validate price if provided
+        let priceNum: number | undefined = undefined
+        if (price !== undefined && price !== null) {
+            priceNum = typeof price === "string" ? parseInt(price, 10) : typeof price === "number" ? price : NaN
+            if (isNaN(priceNum) || priceNum < 0) {
+                return NextResponse.json({ error: "price to'g'ri son bo'lishi kerak va 0 dan katta" }, { status: 400 })
+            }
+        }
+
+        // Validate weight if provided
+        let weightNum: number | undefined = undefined
+        if (weight !== undefined && weight !== null) {
+            weightNum = typeof weight === "string" ? parseInt(weight, 10) : typeof weight === "number" ? weight : NaN
+            if (isNaN(weightNum) || weightNum < 0) {
+                return NextResponse.json({ error: "weight to'g'ri son bo'lishi kerak va 0 dan katta" }, { status: 400 })
+            }
+        }
+
         const product = await prisma.product.update({
             where: { id },
             data: {
@@ -37,8 +55,8 @@ export async function PATCH(
                 description,
                 image,
                 imagePublicId,
-                price: price ? parseInt(price) : undefined,
-                weight: weight ? parseInt(weight) : undefined,
+                price: priceNum,
+                weight: weightNum,
                 isActive
             },
             include: {
