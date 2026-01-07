@@ -65,3 +65,4 @@ cd /app && npx prisma migrate deploy && npx prisma db seed
 4. Environment variables tekshiring
 
 
+

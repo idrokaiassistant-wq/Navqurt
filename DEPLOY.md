@@ -95,3 +95,4 @@ Dokploy'da GitHub integration sozlanganda, har safar `main` branch'ga push qilin
 Webhook URL Dokploy tomonidan yaratiladi va GitHub repository Settings → Webhooks bo'limida ko'rinadi.
 
 
+
