@@ -44,7 +44,7 @@ export async function PATCH(request: NextRequest) {
         }
 
         // Build update data
-        const updateData: { name?: string; email?: string; passwordHash?: string } = {}
+        const updateData: { name?: string; email?: string; passwordHash?: string; logoUrl?: string } = {}
 
         if (name !== undefined) {
             const trimmedName = String(name).trim()

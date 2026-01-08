@@ -2,17 +2,11 @@ import { NextRequest } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { assertAdmin } from "@/lib/api-auth"
 import { withApiErrorHandler, successResponse } from "@/lib/api-response"
-
-import { NextRequest } from "next/server"
-import { prisma } from "@/lib/prisma"
-import { assertAdmin } from "@/lib/api-auth"
-import { withApiErrorHandler, successResponse } from "@/lib/api-response"
 import { parseIntSafe } from "@/lib/validation"
 
 export async function GET(request: NextRequest) {
     return withApiErrorHandler(async () => {
         await assertAdmin(request)
-    }, { method: 'GET', path: '/api/admin/customers' })
 
         // Pagination parameters
         const searchParams = request.nextUrl.searchParams
@@ -64,6 +58,6 @@ export async function GET(request: NextRequest) {
                 hasPreviousPage: pageNumber > 1
             }
         })
-    })
+    }, { method: 'GET', path: '/api/admin/customers' })
 }
 

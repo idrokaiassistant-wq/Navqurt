@@ -5,7 +5,6 @@ const nextConfig: NextConfig = {
   
   // Production optimizations
   compress: true, // Enable gzip compression
-  swcMinify: true, // Use SWC for minification (faster than Terser)
   productionBrowserSourceMaps: false, // Disable source maps in production for security and performance
   
   // React optimizations
