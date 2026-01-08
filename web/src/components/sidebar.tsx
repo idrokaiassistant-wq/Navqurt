@@ -37,11 +37,13 @@ const navItems = [
 function NavContent({
     pathname,
     setOpen,
-    handleLogout
+    handleLogout,
+    logoUrl
 }: {
     pathname: string;
     setOpen: (open: boolean) => void;
-    handleLogout: () => void
+    handleLogout: () => void;
+    logoUrl: string;
 }) {
     return (
         <div className="flex flex-col h-full bg-slate-900">
@@ -49,12 +51,13 @@ function NavContent({
             <div className="p-6 flex items-center gap-3">
                 <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0">
                     <Image
-                        src="/logo.png"
+                        src={logoUrl}
                         alt="Navqurt Logo"
                         width={48}
                         height={48}
                         className="w-full h-full object-cover"
                         priority
+                        unoptimized
                     />
                 </div>
                 <div>
@@ -112,7 +115,7 @@ function NavContent({
 export function Sidebar() {
     const pathname = usePathname()
     const [open, setOpen] = useState(false)
-    const { theme, toggleTheme } = useStore()
+    const { theme, toggleTheme, logoUrl } = useStore()
 
     const handleLogout = () => {
         signOut({ callbackUrl: "/login" })
@@ -130,7 +133,7 @@ export function Sidebar() {
                             </button>
                         </SheetTrigger>
                         <SheetContent side="left" className="p-0 w-72 border-slate-800">
-                            <NavContent pathname={pathname} setOpen={setOpen} handleLogout={handleLogout} />
+                            <NavContent pathname={pathname} setOpen={setOpen} handleLogout={handleLogout} logoUrl={logoUrl} />
                         </SheetContent>
                     </Sheet>
                     <span className="text-lg font-semibold text-white">Dashboard</span>
@@ -153,7 +156,7 @@ export function Sidebar() {
 
             {/* Desktop Sidebar */}
             <aside className="hidden lg:flex lg:w-72 lg:flex-col lg:fixed lg:inset-y-0 border-r border-slate-800">
-                <NavContent pathname={pathname} setOpen={setOpen} handleLogout={handleLogout} />
+                <NavContent pathname={pathname} setOpen={setOpen} handleLogout={handleLogout} logoUrl={logoUrl} />
             </aside>
         </>
     )

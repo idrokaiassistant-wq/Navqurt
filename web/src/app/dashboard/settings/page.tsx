@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { User, Lock, Bell, Palette, Check, AlertCircle } from "lucide-react"
 import { useStore } from "@/lib/store"
-import { apiGet, apiPatch, handleApiError } from "@/lib/api-client"
+import { apiGet, apiPatch, apiPostFormData, handleApiError } from "@/lib/api-client"
 import { STORAGE_KEYS, DEFAULT_NOTIFICATIONS } from "@/lib/constants"
 
 type AdminProfile = {
@@ -15,7 +15,7 @@ type AdminProfile = {
 
 export default function SettingsPage() {
     const [activeTab, setActiveTab] = useState("profile")
-    const { theme, toggleTheme } = useStore()
+    const { theme, toggleTheme, logoUrl, setLogoUrl } = useStore()
 
     // Profile state
     const [profileForm, setProfileForm] = useState({ name: "", email: "" })
@@ -32,6 +32,34 @@ export default function SettingsPage() {
 
     // Notifications state (localStorage based)
     const [notifications, setNotifications] = useState(DEFAULT_NOTIFICATIONS)
+
+    // Logo upload state
+    const [logoUploading, setLogoUploading] = useState(false)
+
+    const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0]
+        if (!file) return
+
+        setLogoUploading(true)
+        setErrorMessage("")
+        try {
+            const formData = new FormData()
+            formData.append("file", file)
+
+            const data = await apiPostFormData<{ url: string; public_id: string }>(
+                "/api/admin/upload",
+                formData
+            )
+
+            setLogoUrl(data.url)
+            setSuccessMessage("Logo muvaffaqiyatli yangilandi")
+        } catch (error) {
+            const errorMessage = handleApiError(error)
+            setErrorMessage(errorMessage)
+        } finally {
+            setLogoUploading(false)
+        }
+    }
 
     useEffect(() => {
         loadProfile()
@@ -269,9 +297,39 @@ export default function SettingsPage() {
                 )}
 
                 {activeTab === "appearance" && (
-                    <div className="space-y-4">
+                    <div className="space-y-6">
                         <h3 className="text-lg font-semibold text-white">Ko&apos;rinish sozlamalari</h3>
-                        <div className="flex items-center justify-between py-3">
+
+                        {/* Logo Upload */}
+                        <div className="space-y-3">
+                            <label className="block text-sm text-slate-400">Tizim logosi</label>
+                            <div className="flex items-center gap-4">
+                                <div className="w-16 h-16 rounded-full overflow-hidden bg-slate-800 flex-shrink-0">
+                                    <img
+                                        src={logoUrl}
+                                        alt="Logo"
+                                        className="w-full h-full object-cover"
+                                    />
+                                </div>
+                                <div className="flex-1">
+                                    <label className="cursor-pointer">
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            className="hidden"
+                                            onChange={handleLogoUpload}
+                                        />
+                                        <span className="inline-block bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded-xl transition-colors">
+                                            {logoUploading ? "Yuklanmoqda..." : "Yangi logo yuklash"}
+                                        </span>
+                                    </label>
+                                    <p className="text-xs text-slate-500 mt-1">PNG, JPG yoki WebP (aylana shakl tavsiya etiladi)</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Theme Toggle */}
+                        <div className="flex items-center justify-between py-3 border-t border-slate-800">
                             <span className="text-white">Qorong&apos;u rejim</span>
                             <button
                                 onClick={toggleTheme}
