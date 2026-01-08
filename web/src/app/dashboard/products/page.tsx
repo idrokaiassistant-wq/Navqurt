@@ -331,7 +331,7 @@ export default function ProductsPage() {
                     <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
                         <DialogTrigger asChild>
                             <button
-                                onClick={() => setFormData({ name: "", description: "", price: "", weight: "", categoryIds: [], image: "", imagePublicId: "" })}
+                                onClick={() => setFormData({ name: "", description: "", price: "", weight: "", categoryIds: [], image: "", imagePublicId: "", imageId: "" })}
                                 className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 text-sm rounded-xl flex items-center gap-2 transition-colors"
                             >
                                 <Plus className="h-4 w-4" />

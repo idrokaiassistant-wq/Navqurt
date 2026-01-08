@@ -1,4 +1,4 @@
-import { NextRequest } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { withApiErrorHandler, notFoundResponse } from "@/lib/api-response"
 
@@ -27,7 +27,7 @@ export async function GET(
         // Return as image
         const buffer = Buffer.from(image.data, 'base64')
         
-        return new Response(buffer, {
+        return new NextResponse(buffer, {
             headers: {
                 'Content-Type': image.mimeType,
                 'Content-Length': buffer.length.toString(),

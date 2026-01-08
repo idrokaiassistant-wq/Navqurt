@@ -3,6 +3,7 @@ import { assertAdmin } from "@/lib/api-auth"
 import { prisma } from "@/lib/prisma"
 import { withApiErrorHandler, successResponse, badRequestResponse, internalServerErrorResponse } from "@/lib/api-response"
 import { uploadFile, validateFile } from "@/lib/file-storage"
+import type { CloudinaryUploadResponse } from "@/lib/types"
 
 // Check if Cloudinary is configured
 function isCloudinaryConfigured(): boolean {
@@ -45,7 +46,6 @@ export async function POST(request: NextRequest) {
         if (isCloudinaryConfigured()) {
             try {
                 const cloudinary = require("@/lib/cloudinary").default
-                const { CloudinaryUploadResponse } = require("@/lib/types")
 
                 const bytes = await file.arrayBuffer()
                 const buffer = Buffer.from(bytes)
@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
                             folder: "navqurt_products",
                             resource_type: "auto",
                         },
-                        (error, result) => {
+                        (error: any, result: any) => {
                             if (error) {
                                 const errorMsg = error.message || 'Cloudinary yuklash xatosi'
                                 reject(new Error(`Cloudinary xatosi: ${errorMsg}`))
