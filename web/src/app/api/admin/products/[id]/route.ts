@@ -12,7 +12,7 @@ export async function PATCH(
         await assertAdmin(request)
         const { id } = await params
         const body = await request.json()
-        const { name, description, image, imagePublicId, price, weight, isActive, categoryIds } = body
+        const { name, description, image, imagePublicId, imageId, price, weight, isActive, categoryIds } = body
 
         // Validate and parse price if provided
         let parsedPrice: number | undefined
@@ -63,6 +63,7 @@ export async function PATCH(
             description?: string | null
             image?: string | null
             imagePublicId?: string | null
+            imageId?: string | null
             price?: number
             weight?: number
             isActive?: boolean
@@ -70,8 +71,9 @@ export async function PATCH(
 
         if (name !== undefined) updateData.name = name.trim()
         if (description !== undefined) updateData.description = description?.trim() || null
-        if (image !== undefined) updateData.image = image || null
-        if (imagePublicId !== undefined) updateData.imagePublicId = imagePublicId || null
+        if (image !== undefined) updateData.image = image || null // Backward compatibility
+        if (imagePublicId !== undefined) updateData.imagePublicId = imagePublicId || null // Backward compatibility
+        if (imageId !== undefined) updateData.imageId = imageId || null // New: database image reference
         if (parsedPrice !== undefined) updateData.price = parsedPrice
         if (parsedWeight !== undefined) updateData.weight = parsedWeight
         if (isActive !== undefined) updateData.isActive = isActive
@@ -82,15 +84,22 @@ export async function PATCH(
             include: {
                 categories: {
                     include: { category: true }
-                }
+                },
+                imageData: true
             }
         })
 
         // Transform response
+        let imageUrl = product.image || null
+        if (product.imageId && product.imageData) {
+            imageUrl = `/api/images/${product.imageId}`
+        }
+
         const productWithCategories = {
             ...product,
             categoryIds: product.categories.map(pc => pc.categoryId),
-            categoryNames: product.categories.map(pc => pc.category.name)
+            categoryNames: product.categories.map(pc => pc.category.name),
+            image: imageUrl // Override with computed image URL
         }
 
         return successResponse(productWithCategories)

@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server"
 import { assertAdmin } from "@/lib/api-auth"
+import { prisma } from "@/lib/prisma"
 import { withApiErrorHandler, successResponse, badRequestResponse, internalServerErrorResponse } from "@/lib/api-response"
 import { uploadFile, validateFile } from "@/lib/file-storage"
 
@@ -12,6 +13,15 @@ function isCloudinaryConfigured(): boolean {
     } catch {
         return false
     }
+}
+
+/**
+ * Convert file to base64 string
+ */
+async function fileToBase64(file: File): Promise<string> {
+    const bytes = await file.arrayBuffer()
+    const buffer = Buffer.from(bytes)
+    return buffer.toString('base64')
 }
 
 export async function POST(request: NextRequest) {
@@ -78,16 +88,38 @@ export async function POST(request: NextRequest) {
             }
         }
 
-        // Use local file storage (fallback or primary)
+        // Use PostgreSQL storage (primary method for security)
         try {
-            const result = await uploadFile(file)
+            // Convert file to base64
+            const base64Data = await fileToBase64(file)
+            
+            // Save to database
+            const image = await prisma.image.create({
+                data: {
+                    filename: file.name,
+                    mimeType: file.type,
+                    data: base64Data,
+                    size: file.size
+                }
+            })
+
+            // Return image ID and URL
             return successResponse({
-                url: result.url,
-                public_id: result.public_id
+                url: `/api/images/${image.id}`, // URL for serving image
+                public_id: image.id // Use image ID as public_id for deletion
             })
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Noma\'lum xatolik'
-            return internalServerErrorResponse(`Rasm yuklash xatosi: ${errorMessage}`)
+            // If database fails, try local file storage as fallback
+            try {
+                const result = await uploadFile(file)
+                return successResponse({
+                    url: result.url,
+                    public_id: result.public_id
+                })
+            } catch (fallbackError) {
+                return internalServerErrorResponse(`Rasm yuklash xatosi: ${errorMessage}`)
+            }
         }
     })
 }

@@ -110,6 +110,10 @@ export function conflictResponse(message: string): NextResponse<ApiErrorType> {
   return NextResponse.json({ error: message }, { status: 409 })
 }
 
+export function internalServerErrorResponse(message: string): NextResponse<ApiErrorType> {
+  return NextResponse.json({ error: message }, { status: 500 })
+}
+
 /**
  * API route wrapper for consistent error handling
  */

@@ -45,13 +45,22 @@ export async function POST(request: NextRequest) {
             }
         }
 
-        // Use local file storage (fallback or primary)
+        // Use PostgreSQL storage (primary method)
         try {
-            await deleteFile(String(public_id))
+            // Try to delete from database first
+            await prisma.image.delete({
+                where: { id: String(public_id) }
+            })
             return messageResponse("Rasm muvaffaqiyatli o'chirildi")
         } catch (error) {
-            // File might not exist, that's okay
-            return messageResponse("Rasm allaqachon o'chirilgan yoki topilmadi")
+            // If not found in database, try local file storage (for backward compatibility)
+            try {
+                await deleteFile(String(public_id))
+                return messageResponse("Rasm muvaffaqiyatli o'chirildi")
+            } catch {
+                // File might not exist, that's okay
+                return messageResponse("Rasm allaqachon o'chirilgan yoki topilmadi")
+            }
         }
     })
 }

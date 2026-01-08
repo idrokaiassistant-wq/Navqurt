@@ -37,15 +37,15 @@ enum StockMovementType {
 }
 
 model User {
-  id          String   @id @default(uuid())
-  telegramId  BigInt   @unique
-  fullName    String?
-  phone       String?
-  regionId    String?
-  address     String?
-  createdAt   DateTime @default(now())
-  orders      Order[]
-  region      Region?  @relation(fields: [regionId], references: [id])
+  id         String   @id @default(uuid())
+  telegramId BigInt   @unique
+  fullName   String?
+  phone      String?
+  regionId   String?
+  address    String?
+  createdAt  DateTime @default(now())
+  orders     Order[]
+  region     Region?  @relation(fields: [regionId], references: [id])
 }
 
 model AdminUser {
@@ -59,26 +59,28 @@ model AdminUser {
 }
 
 model Category {
-  id        String   @id @default(uuid())
-  name      String   @unique
+  id        String            @id @default(uuid())
+  name      String            @unique
   color     String?
-  createdAt DateTime @default(now())
+  createdAt DateTime          @default(now())
   products  ProductCategory[]
 }
 
 model Product {
-  id          String   @id @default(uuid())
-  name        String
-  description String?
-  image       String?
-  imagePublicId String?
-  price       Int
-  weight      Int
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  variants    Variant[]
-  orderItems  OrderItem[]
-  categories  ProductCategory[]
+  id            String            @id @default(uuid())
+  name          String
+  description   String?
+  image         String?           @default("") // Deprecated: kept for backward compatibility
+  imagePublicId String?           @default("") // Deprecated: kept for backward compatibility
+  imageId       String? // New: reference to Image model
+  price         Int
+  weight        Int
+  isActive      Boolean           @default(true)
+  createdAt     DateTime          @default(now())
+  variants      Variant[]
+  orderItems    OrderItem[]
+  categories    ProductCategory[]
+  imageData     Image?            @relation(fields: [imageId], references: [id])
 }
 
 model ProductCategory {
@@ -86,29 +88,29 @@ model ProductCategory {
   categoryId String
   createdAt  DateTime @default(now())
 
-  product   Product  @relation(fields: [productId], references: [id])
-  category  Category @relation(fields: [categoryId], references: [id])
+  product  Product  @relation(fields: [productId], references: [id])
+  category Category @relation(fields: [categoryId], references: [id])
 
   @@id([productId, categoryId])
 }
 
 model Variant {
-  id          String    @id @default(uuid())
-  productId   String
-  type        TasteType
-  priceDelta  Int       @default(0)
-  product     Product   @relation(fields: [productId], references: [id])
-  orderItems  OrderItem[]
+  id         String      @id @default(uuid())
+  productId  String
+  type       TasteType
+  priceDelta Int         @default(0)
+  product    Product     @relation(fields: [productId], references: [id])
+  orderItems OrderItem[]
 }
 
 model Region {
-  id            String  @id @default(uuid())
-  name          String  @unique
-  deliveryPrice Int
+  id              String  @id @default(uuid())
+  name            String  @unique
+  deliveryPrice   Int
   minFreeDelivery Int?
-  isActive      Boolean @default(true)
-  users         User[]
-  orders        Order[]
+  isActive        Boolean @default(true)
+  users           User[]
+  orders          Order[]
 }
 
 model Order {
@@ -127,40 +129,50 @@ model Order {
 }
 
 model OrderItem {
-  id        String  @id @default(uuid())
+  id        String   @id @default(uuid())
   orderId   String
   productId String
   variantId String?
   quantity  Int
   price     Int
-  order     Order   @relation(fields: [orderId], references: [id])
-  product   Product @relation(fields: [productId], references: [id])
+  order     Order    @relation(fields: [orderId], references: [id])
+  product   Product  @relation(fields: [productId], references: [id])
   variant   Variant? @relation(fields: [variantId], references: [id])
 }
 
 model StockItem {
-  id          String   @id @default(uuid())
-  name        String   @unique
-  current     Float    @default(0)
-  unit        String   @default("kg")
-  minRequired Float    @default(0)
-  price       Int      @default(0)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id          String          @id @default(uuid())
+  name        String          @unique
+  current     Float           @default(0)
+  unit        String          @default("kg")
+  minRequired Float           @default(0)
+  price       Int             @default(0)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
   movements   StockMovement[]
 }
 
 model StockMovement {
-  id      String            @id @default(uuid())
-  type    StockMovementType
-  itemId  String
-  amount  Float
-  unit    String
-  price   Int?
-  note    String?
-  date    DateTime @default(now())
+  id     String            @id @default(uuid())
+  type   StockMovementType
+  itemId String
+  amount Float
+  unit   String
+  price  Int?
+  note   String?
+  date   DateTime          @default(now())
 
   item StockItem @relation(fields: [itemId], references: [id])
 
   @@index([itemId, date])
+}
+
+model Image {
+  id        String    @id @default(uuid())
+  filename  String
+  mimeType  String
+  data      String    @db.Text // Base64 encoded image data
+  size      Int // Size in bytes
+  createdAt DateTime  @default(now())
+  products  Product[]
 }

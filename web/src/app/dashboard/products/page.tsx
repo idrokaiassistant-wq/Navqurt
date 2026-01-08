@@ -20,8 +20,9 @@ interface Product {
     id: string
     name: string
     description?: string
-    image?: string
-    imagePublicId?: string
+    image?: string // URL (can be /api/images/[id] or external URL)
+    imagePublicId?: string // Deprecated: kept for backward compatibility
+    imageId?: string // New: database image ID
     price: number
     weight: number
     isActive: boolean
@@ -44,7 +45,8 @@ export default function ProductsPage() {
         weight: "",
         categoryIds: [] as string[],
         image: "",
-        imagePublicId: ""
+        imagePublicId: "", // Deprecated: kept for backward compatibility
+        imageId: "" // New: database image ID
     })
     const [uploading, setUploading] = useState(false)
     const fileInputRef = useRef<HTMLInputElement>(null)
@@ -89,10 +91,16 @@ export default function ProductsPage() {
                 formDataUpload
             )
             
+            // Extract imageId from URL if it's /api/images/[id] format
+            const imageId = data.url.startsWith('/api/images/') 
+                ? data.url.replace('/api/images/', '')
+                : null
+            
             setFormData(prev => ({
                 ...prev,
-                image: data.url,
-                imagePublicId: data.public_id
+                image: data.url, // Full URL (can be /api/images/[id] or external)
+                imagePublicId: data.public_id, // Keep for backward compatibility
+                imageId: imageId || data.public_id // Use imageId if available, otherwise public_id
             }))
         } catch (error) {
             const errorMessage = handleApiError(error)
@@ -104,16 +112,18 @@ export default function ProductsPage() {
     }
 
     const handleRemoveImage = async () => {
-        if (formData.imagePublicId) {
+        // Use imageId if available, otherwise imagePublicId (backward compatibility)
+        const publicId = formData.imageId || formData.imagePublicId
+        if (publicId) {
             try {
                 await apiPost<{ message: string }>("/api/admin/upload/delete", {
-                    public_id: formData.imagePublicId
+                    public_id: publicId
                 })
             } catch (error) {
                 logError("Failed to delete image:", handleApiError(error))
             }
         }
-        setFormData(prev => ({ ...prev, image: "", imagePublicId: "" }))
+        setFormData(prev => ({ ...prev, image: "", imagePublicId: "", imageId: "" }))
     }
 
     const handleAdd = async () => {
@@ -121,7 +131,7 @@ export default function ProductsPage() {
             await apiPost<{ data: Product }>("/api/admin/products", formData)
             await fetchProducts()
             setIsAddOpen(false)
-            setFormData({ name: "", description: "", price: "", weight: "", categoryIds: [], image: "", imagePublicId: "" })
+            setFormData({ name: "", description: "", price: "", weight: "", categoryIds: [], image: "", imagePublicId: "", imageId: "" })
         } catch (error) {
             const errorMessage = handleApiError(error)
             logError("Failed to add product:", errorMessage)
@@ -147,11 +157,12 @@ export default function ProductsPage() {
         const product = products.find(p => p.id === id)
         if (!confirm("Mahsulotni o'chirmoqchimisiz?")) return
 
-        // Delete image from Cloudinary if exists
-        if (product?.imagePublicId) {
+        // Delete image from database or storage if exists
+        const publicId = product?.imageId || product?.imagePublicId
+        if (publicId) {
             try {
                 await apiPost<{ message: string }>("/api/admin/upload/delete", {
-                    public_id: product.imagePublicId
+                    public_id: publicId
                 })
             } catch (error) {
                 logError("Failed to delete image:", handleApiError(error))
@@ -177,7 +188,8 @@ export default function ProductsPage() {
             weight: product.weight.toString(),
             categoryIds: product.categoryIds || [],
             image: product.image || "",
-            imagePublicId: product.imagePublicId || ""
+            imagePublicId: product.imagePublicId || "",
+            imageId: product.imageId || ""
         })
         setIsEditOpen(true)
     }
@@ -236,7 +248,7 @@ export default function ProductsPage() {
                                 <>
                                     <Upload className="h-8 w-8 text-slate-400 mb-2" />
                                     <span className="text-slate-400 text-sm">Rasm yuklash uchun bosing</span>
-                                    <span className="text-slate-500 text-xs mt-1">Cloudinary (JPEG, PNG, WebP)</span>
+                                    <span className="text-slate-500 text-xs mt-1">PostgreSQL Database (JPEG, PNG, WebP)</span>
                                 </>
                             )}
                         </label>
