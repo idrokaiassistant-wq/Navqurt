@@ -174,23 +174,24 @@ export default function WarehousePage() {
     }
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-4 md:space-y-6">
             {/* Header */}
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                    <h1 className="text-2xl font-bold text-white">Omborxona</h1>
-                    <p className="text-slate-400">Mahsulot qoldiqlari va xarajatlarni boshqaring</p>
+                    <h1 className="text-xl md:text-2xl font-bold text-white">Omborxona</h1>
+                    <p className="text-slate-400 text-sm md:text-base">Mahsulot qoldiqlari va xarajatlarni boshqaring</p>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-2 flex-wrap">
                     {/* Add Stock Item */}
                     <Dialog open={isAddItemOpen} onOpenChange={setIsAddItemOpen}>
                         <DialogTrigger asChild>
-                            <Button className="bg-blue-500 hover:bg-blue-600">
-                                <Plus className="h-4 w-4 mr-2" />
-                                Mahsulot qo&apos;shish
+                            <Button className="bg-blue-500 hover:bg-blue-600 text-sm px-3 py-2">
+                                <Plus className="h-4 w-4 sm:mr-2" />
+                                <span className="hidden sm:inline">Mahsulot qo&apos;shish</span>
+                                <span className="sm:hidden">Qo&apos;shish</span>
                             </Button>
                         </DialogTrigger>
-                        <DialogContent className="bg-slate-900 border-slate-800 text-white">
+                        <DialogContent className="bg-slate-900 border-slate-800 text-white max-w-[95vw] sm:max-w-md mx-auto">
                             <DialogHeader>
                                 <DialogTitle>Yangi mahsulot qo&apos;shish</DialogTitle>
                             </DialogHeader>
@@ -256,12 +257,13 @@ export default function WarehousePage() {
                     {/* Add Movement */}
                     <Dialog open={isAddMovementOpen} onOpenChange={setIsAddMovementOpen}>
                         <DialogTrigger asChild>
-                            <Button variant="outline" className="border-slate-700 text-white hover:bg-slate-800">
-                                <TrendingUp className="h-4 w-4 mr-2" />
-                                Kirim/Chiqim
+                            <Button variant="outline" className="border-slate-700 text-white hover:bg-slate-800 text-sm px-3 py-2">
+                                <TrendingUp className="h-4 w-4 sm:mr-2" />
+                                <span className="hidden sm:inline">Kirim/Chiqim</span>
+                                <span className="sm:hidden">Kirim</span>
                             </Button>
                         </DialogTrigger>
-                        <DialogContent className="bg-slate-900 border-slate-800 text-white">
+                        <DialogContent className="bg-slate-900 border-slate-800 text-white max-w-[95vw] sm:max-w-md mx-auto">
                             <DialogHeader>
                                 <DialogTitle>Kirim yoki Chiqim qo&apos;shish</DialogTitle>
                             </DialogHeader>
@@ -421,8 +423,8 @@ export default function WarehousePage() {
                                     </td>
                                     <td className="px-4 py-3">
                                         <span className={`px-3 py-1 rounded-full text-xs ${item.current > item.minRequired
-                                                ? "bg-emerald-500/20 text-emerald-400"
-                                                : "bg-amber-500/20 text-amber-400"
+                                            ? "bg-emerald-500/20 text-emerald-400"
+                                            : "bg-amber-500/20 text-amber-400"
                                             }`}>
                                             {item.current > item.minRequired ? "Yetarli" : "Kam qolgan"}
                                         </span>
@@ -490,7 +492,7 @@ export default function WarehousePage() {
 
             {/* Edit Item Modal */}
             <Dialog open={isEditItemOpen} onOpenChange={setIsEditItemOpen}>
-                <DialogContent className="bg-slate-900 border-slate-800 text-white">
+                <DialogContent className="bg-slate-900 border-slate-800 text-white max-w-[95vw] sm:max-w-md mx-auto">
                     <DialogHeader>
                         <DialogTitle>Mahsulotni tahrirlash</DialogTitle>
                     </DialogHeader>

@@ -333,24 +333,25 @@ export default function ProductsPage() {
     )
 
     return (
-        <div className="space-y-6">
-            <div className="flex items-center justify-between">
+        <div className="space-y-4 md:space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                    <h1 className="text-2xl font-bold text-white">Mahsulotlar</h1>
-                    <p className="text-slate-400">Barcha mahsulotlarni boshqaring</p>
+                    <h1 className="text-xl md:text-2xl font-bold text-white">Mahsulotlar</h1>
+                    <p className="text-slate-400 text-sm md:text-base">Barcha mahsulotlarni boshqaring</p>
                 </div>
                 <div className="flex items-center gap-3">
                     <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
                         <DialogTrigger asChild>
                             <button
                                 onClick={() => setFormData({ name: "", description: "", price: "", weight: "", categoryIds: [], image: "", imagePublicId: "" })}
-                                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-xl flex items-center gap-2 transition-colors"
+                                className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 text-sm rounded-xl flex items-center gap-2 transition-colors"
                             >
-                                <Plus className="h-5 w-5" />
-                                Qo&apos;shish
+                                <Plus className="h-4 w-4" />
+                                <span className="hidden sm:inline">Qo&apos;shish</span>
+                                <span className="sm:hidden">+</span>
                             </button>
                         </DialogTrigger>
-                        <DialogContent className="bg-slate-900 border-slate-800 text-white max-h-[90vh] overflow-y-auto">
+                        <DialogContent className="bg-slate-900 border-slate-800 text-white max-h-[90vh] overflow-y-auto max-w-[95vw] sm:max-w-md mx-auto">
                             <DialogHeader>
                                 <DialogTitle>Yangi mahsulot</DialogTitle>
                             </DialogHeader>
@@ -422,7 +423,7 @@ export default function ProductsPage() {
 
             {/* Edit Modal */}
             <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-                <DialogContent className="bg-slate-900 border-slate-800 text-white max-h-[90vh] overflow-y-auto">
+                <DialogContent className="bg-slate-900 border-slate-800 text-white max-h-[90vh] overflow-y-auto max-w-[95vw] sm:max-w-md mx-auto">
                     <DialogHeader>
                         <DialogTitle>Mahsulotni tahrirlash</DialogTitle>
                     </DialogHeader>
