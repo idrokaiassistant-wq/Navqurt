@@ -21,8 +21,9 @@ import {
     Warehouse
 } from "lucide-react"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useStore } from "@/lib/store"
+import { apiGet } from "@/lib/api-client"
 
 const navItems = [
     { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -49,15 +50,22 @@ function NavContent({
         <div className="flex flex-col h-full bg-slate-900">
             {/* Logo */}
             <div className="p-6 flex items-center gap-3">
-                <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0">
+                <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0 bg-slate-700 flex items-center justify-center">
                     <Image
-                        src={logoUrl}
+                        src={logoUrl || '/logo.png'}
                         alt="Navqurt Logo"
                         width={48}
                         height={48}
                         className="w-full h-full object-cover"
                         priority
                         unoptimized
+                        onError={(e) => {
+                            // Fallback to default logo if image fails to load
+                            const target = e.target as HTMLImageElement
+                            if (target.src !== '/logo.png') {
+                                target.src = '/logo.png'
+                            }
+                        }}
                     />
                 </div>
                 <div>
@@ -115,7 +123,23 @@ function NavContent({
 export function Sidebar() {
     const pathname = usePathname()
     const [open, setOpen] = useState(false)
-    const { theme, toggleTheme, logoUrl } = useStore()
+    const { theme, toggleTheme, logoUrl, setLogoUrl } = useStore()
+
+    // Load logo URL from API on mount
+    useEffect(() => {
+        const loadLogoUrl = async () => {
+            try {
+                const data = await apiGet<{ logoUrl?: string }>("/api/admin/settings")
+                if (data.logoUrl) {
+                    setLogoUrl(data.logoUrl)
+                }
+            } catch (error) {
+                // Silently fail - use default logo from store
+                // Default logo is already set in store, so no action needed
+            }
+        }
+        loadLogoUrl()
+    }, [setLogoUrl])
 
     const handleLogout = () => {
         signOut({ callbackUrl: "/login" })
