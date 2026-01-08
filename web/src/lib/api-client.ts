@@ -8,12 +8,16 @@ interface ApiSuccessResponse<T> {
   message?: string
 }
 
+interface ApiMessageResponse {
+  message: string
+}
+
 interface ApiErrorResponse {
   error: string
   detail?: string
 }
 
-type ApiResponse<T> = ApiSuccessResponse<T> | ApiErrorResponse
+type ApiResponse<T> = ApiSuccessResponse<T> | ApiMessageResponse | ApiErrorResponse
 
 class ApiError extends Error {
   constructor(
@@ -29,8 +33,10 @@ class ApiError extends Error {
 /**
  * Check if response is successful
  */
-function isSuccessResponse<T>(response: ApiResponse<T>): response is ApiSuccessResponse<T> {
-  return 'data' in response
+function isSuccessResponse<T>(
+  response: ApiResponse<T>
+): response is ApiSuccessResponse<T> | ApiMessageResponse {
+  return 'data' in response || 'message' in response
 }
 
 /**
@@ -59,7 +65,15 @@ async function parseResponse<T>(response: Response): Promise<T> {
     throw new ApiError(response.status, 'Javob formati noto\'g\'ri')
   }
 
-  return data.data
+  // Handle data response format: { data: T }
+  if ('data' in data) {
+    return data.data
+  }
+
+  // Handle message-only response format: { message: string }
+  // For DELETE endpoints that return { message: string }, return as T
+  // This assumes T is compatible with { message: string } for DELETE calls
+  return data as T
 }
 
 /**
