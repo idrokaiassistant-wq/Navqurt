@@ -67,3 +67,4 @@ Agar muammo bo'lsa:
 
 
 
+

@@ -140,3 +140,4 @@ GitHub'ga push qilinganda avtomatik deploy bo'ladi (agar Auto Deploy yoqilgan bo
 
 
 
+

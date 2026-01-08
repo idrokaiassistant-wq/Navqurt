@@ -337,45 +337,49 @@ export default function WarehousePage() {
             </div>
 
             {/* Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+                <button
+                    onClick={() => setIsAddMovementOpen(true)}
+                    className="bg-slate-900 border border-slate-800 rounded-2xl p-4 md:p-5 text-left hover:border-blue-500/50 transition-colors group"
+                >
                     <div className="flex items-center justify-between mb-3">
-                        <div className="bg-blue-500 p-3 rounded-xl">
-                            <Package className="h-5 w-5 text-white" />
+                        <div className="bg-blue-500 p-2.5 md:p-3 rounded-xl">
+                            <Package className="h-4 w-4 md:h-5 md:w-5 text-white" />
+                        </div>
+                        <Edit2 className="h-4 w-4 text-slate-500 group-hover:text-blue-400 transition-colors" />
+                    </div>
+                    <div className="text-xl md:text-2xl font-bold text-white">{totalStock} kg</div>
+                    <div className="text-slate-400 text-xs md:text-sm">Jami qurt qoldig&apos;i</div>
+                </button>
+
+                <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 md:p-5">
+                    <div className="flex items-center justify-between mb-3">
+                        <div className="bg-emerald-500 p-2.5 md:p-3 rounded-xl">
+                            <TrendingUp className="h-4 w-4 md:h-5 md:w-5 text-white" />
                         </div>
                     </div>
-                    <div className="text-2xl font-bold text-white">{totalStock} kg</div>
-                    <div className="text-slate-400 text-sm">Jami qurt qoldig&apos;i</div>
+                    <div className="text-xl md:text-2xl font-bold text-white">{thisMonthIn} kg</div>
+                    <div className="text-slate-400 text-xs md:text-sm">Bu oy kirim</div>
                 </div>
 
-                <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+                <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 md:p-5">
                     <div className="flex items-center justify-between mb-3">
-                        <div className="bg-emerald-500 p-3 rounded-xl">
-                            <TrendingUp className="h-5 w-5 text-white" />
+                        <div className="bg-amber-500 p-2.5 md:p-3 rounded-xl">
+                            <TrendingDown className="h-4 w-4 md:h-5 md:w-5 text-white" />
                         </div>
                     </div>
-                    <div className="text-2xl font-bold text-white">{thisMonthIn} kg</div>
-                    <div className="text-slate-400 text-sm">Bu oy kirim</div>
+                    <div className="text-xl md:text-2xl font-bold text-white">{thisMonthOut} kg</div>
+                    <div className="text-slate-400 text-xs md:text-sm">Bu oy chiqim</div>
                 </div>
 
-                <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+                <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 md:p-5">
                     <div className="flex items-center justify-between mb-3">
-                        <div className="bg-amber-500 p-3 rounded-xl">
-                            <TrendingDown className="h-5 w-5 text-white" />
+                        <div className="bg-rose-500 p-2.5 md:p-3 rounded-xl">
+                            <DollarSign className="h-4 w-4 md:h-5 md:w-5 text-white" />
                         </div>
                     </div>
-                    <div className="text-2xl font-bold text-white">{thisMonthOut} kg</div>
-                    <div className="text-slate-400 text-sm">Bu oy chiqim</div>
-                </div>
-
-                <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
-                    <div className="flex items-center justify-between mb-3">
-                        <div className="bg-rose-500 p-3 rounded-xl">
-                            <DollarSign className="h-5 w-5 text-white" />
-                        </div>
-                    </div>
-                    <div className="text-2xl font-bold text-white">{formatPrice(totalExpenses)}</div>
-                    <div className="text-slate-400 text-sm">Bu oy xarajat</div>
+                    <div className="text-xl md:text-2xl font-bold text-white">{formatPrice(totalExpenses)}</div>
+                    <div className="text-slate-400 text-xs md:text-sm">Bu oy xarajat</div>
                 </div>
             </div>
 
@@ -542,6 +546,6 @@ export default function WarehousePage() {
                     )}
                 </DialogContent>
             </Dialog>
-        </div>
+        </div >
     )
 }
