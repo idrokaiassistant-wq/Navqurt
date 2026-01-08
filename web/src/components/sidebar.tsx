@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import Image from "next/image"
 import { usePathname } from "next/navigation"
 import { signOut } from "next-auth/react"
 import { cn } from "@/lib/utils"
@@ -33,21 +34,28 @@ const navItems = [
     { href: "/dashboard/settings", label: "Sozlamalar", icon: Settings },
 ]
 
-function NavContent({ 
-    pathname, 
-    setOpen, 
-    handleLogout 
-}: { 
-    pathname: string; 
-    setOpen: (open: boolean) => void; 
-    handleLogout: () => void 
+function NavContent({
+    pathname,
+    setOpen,
+    handleLogout
+}: {
+    pathname: string;
+    setOpen: (open: boolean) => void;
+    handleLogout: () => void
 }) {
     return (
         <div className="flex flex-col h-full bg-slate-900">
             {/* Logo */}
             <div className="p-6 flex items-center gap-3">
-                <div className="w-12 h-12 bg-amber-400 rounded-xl flex items-center justify-center">
-                    <span className="text-2xl">🧀</span>
+                <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0">
+                    <Image
+                        src="/logo.png"
+                        alt="Navqurt Logo"
+                        width={48}
+                        height={48}
+                        className="w-full h-full object-cover"
+                        priority
+                    />
                 </div>
                 <div>
                     <h1 className="text-xl font-bold text-white">NAVQURT</h1>
@@ -128,7 +136,7 @@ export function Sidebar() {
                     <span className="text-lg font-semibold text-white">Dashboard</span>
                 </div>
                 <div className="flex items-center gap-2">
-                    <button 
+                    <button
                         onClick={toggleTheme}
                         className="p-2 bg-slate-800 rounded-full text-amber-400 hover:bg-slate-700 transition-colors"
                     >
