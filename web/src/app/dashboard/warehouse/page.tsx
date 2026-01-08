@@ -7,6 +7,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { apiGet, apiPost, apiPatch, apiDelete, handleApiError } from "@/lib/api-client"
+import { logError } from "@/lib/logger"
 
 interface StockItem {
     id: string
@@ -38,8 +40,8 @@ export default function WarehousePage() {
     const [isEditItemOpen, setIsEditItemOpen] = useState(false)
     const [selectedItem, setSelectedItem] = useState<StockItem | null>(null)
     const [movementType, setMovementType] = useState<'in' | 'out'>('in')
-    const [newItem, setNewItem] = useState({ name: '', current: 0, unit: 'kg', minRequired: 0, price: 0 })
-    const [newMovement, setNewMovement] = useState({ itemId: '', amount: 0, price: 0, note: '' })
+    const [newItem, setNewItem] = useState({ name: '', current: '', unit: 'kg', minRequired: '', price: '' })
+    const [newMovement, setNewMovement] = useState({ itemId: '', amount: '', price: '', note: '' })
 
     useEffect(() => {
         fetchData()
@@ -47,20 +49,15 @@ export default function WarehousePage() {
 
     const fetchData = async () => {
         try {
-            const [itemsRes, movementsRes] = await Promise.all([
-                fetch("/api/admin/warehouse/items", { cache: "no-store" }),
-                fetch("/api/admin/warehouse/movements", { cache: "no-store" })
+            const [items, movements] = await Promise.all([
+                apiGet<StockItem[]>("/api/admin/warehouse/items"),
+                apiGet<StockMovement[]>("/api/admin/warehouse/movements")
             ])
-            if (itemsRes.ok) {
-                const data = await itemsRes.json()
-                setStockItems(Array.isArray(data) ? data : [])
-            }
-            if (movementsRes.ok) {
-                const data = await movementsRes.json()
-                setMovements(Array.isArray(data) ? data : [])
-            }
+            setStockItems(Array.isArray(items) ? items : [])
+            setMovements(Array.isArray(movements) ? movements : [])
         } catch (error) {
-            console.error("Failed to fetch warehouse data:", error)
+            const errorMessage = handleApiError(error)
+            logError("Failed to fetch warehouse data:", errorMessage)
         } finally {
             setLoading(false)
         }
@@ -68,60 +65,42 @@ export default function WarehousePage() {
 
     const addStockItem = async (item: Omit<StockItem, 'id' | 'updatedAt'>) => {
         try {
-            const res = await fetch("/api/admin/warehouse/items", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(item)
-            })
-            if (res.ok) {
-                await fetchData()
-            }
+            await apiPost<StockItem>("/api/admin/warehouse/items", item)
+            await fetchData()
         } catch (error) {
-            console.error("Failed to add stock item:", error)
+            const errorMessage = handleApiError(error)
+            logError("Failed to add stock item:", errorMessage)
         }
     }
 
     const updateStockItem = async (id: string, updates: Partial<StockItem>) => {
         try {
-            const res = await fetch(`/api/admin/warehouse/items/${id}`, {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(updates)
-            })
-            if (res.ok) {
-                await fetchData()
-            }
+            await apiPatch<StockItem>(`/api/admin/warehouse/items/${id}`, updates)
+            await fetchData()
         } catch (error) {
-            console.error("Failed to update stock item:", error)
+            const errorMessage = handleApiError(error)
+            logError("Failed to update stock item:", errorMessage)
         }
     }
 
     const deleteStockItem = async (id: string) => {
-        if (!confirm("Mahsulotni o&apos;chirmoqchimisiz?")) return
+        if (!confirm("Mahsulotni o'chirmoqchimisiz?")) return
         try {
-            const res = await fetch(`/api/admin/warehouse/items/${id}`, {
-                method: "DELETE"
-            })
-            if (res.ok) {
-                await fetchData()
-            }
+            await apiDelete<{ message: string }>(`/api/admin/warehouse/items/${id}`)
+            await fetchData()
         } catch (error) {
-            console.error("Failed to delete stock item:", error)
+            const errorMessage = handleApiError(error)
+            logError("Failed to delete stock item:", errorMessage)
         }
     }
 
     const addMovement = async (movement: { type: string; itemId: string; amount: number; price: number | null; note: string }) => {
         try {
-            const res = await fetch("/api/admin/warehouse/movements", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(movement)
-            })
-            if (res.ok) {
-                await fetchData()
-            }
+            await apiPost<StockMovement>("/api/admin/warehouse/movements", movement)
+            await fetchData()
         } catch (error) {
-            console.error("Failed to add movement:", error)
+            const errorMessage = handleApiError(error)
+            logError("Failed to add movement:", errorMessage)
         }
     }
 
@@ -136,8 +115,14 @@ export default function WarehousePage() {
 
     const handleAddItem = () => {
         if (newItem.name) {
-            addStockItem(newItem)
-            setNewItem({ name: '', current: 0, unit: 'kg', minRequired: 0, price: 0 })
+            addStockItem({
+                name: newItem.name,
+                current: Number(newItem.current) || 0,
+                unit: newItem.unit,
+                minRequired: Number(newItem.minRequired) || 0,
+                price: Number(newItem.price) || 0
+            })
+            setNewItem({ name: '', current: '', unit: 'kg', minRequired: '', price: '' })
             setIsAddItemOpen(false)
         }
     }
@@ -151,15 +136,16 @@ export default function WarehousePage() {
     }
 
     const handleAddMovement = () => {
-        if (newMovement.itemId && newMovement.amount > 0) {
+        const amount = Number(newMovement.amount) || 0
+        if (newMovement.itemId && amount > 0) {
             addMovement({
                 type: movementType === 'in' ? 'IN' : 'OUT',
                 itemId: newMovement.itemId,
-                amount: newMovement.amount,
-                price: movementType === 'in' ? newMovement.price : null,
+                amount: amount,
+                price: movementType === 'in' ? (Number(newMovement.price) || 0) : null,
                 note: newMovement.note
             })
-            setNewMovement({ itemId: '', amount: 0, price: 0, note: '' })
+            setNewMovement({ itemId: '', amount: '', price: '', note: '' })
             setIsAddMovementOpen(false)
         }
     }
@@ -211,7 +197,7 @@ export default function WarehousePage() {
                                             type="number"
                                             className="bg-slate-800 border-slate-700"
                                             value={newItem.current}
-                                            onChange={(e) => setNewItem({ ...newItem, current: Number(e.target.value) })}
+                                            onChange={(e) => setNewItem({ ...newItem, current: e.target.value })}
                                         />
                                     </div>
                                     <div>
@@ -234,7 +220,7 @@ export default function WarehousePage() {
                                             type="number"
                                             className="bg-slate-800 border-slate-700"
                                             value={newItem.minRequired}
-                                            onChange={(e) => setNewItem({ ...newItem, minRequired: Number(e.target.value) })}
+                                            onChange={(e) => setNewItem({ ...newItem, minRequired: e.target.value })}
                                         />
                                     </div>
                                     <div>
@@ -243,7 +229,7 @@ export default function WarehousePage() {
                                             type="number"
                                             className="bg-slate-800 border-slate-700"
                                             value={newItem.price}
-                                            onChange={(e) => setNewItem({ ...newItem, price: Number(e.target.value) })}
+                                            onChange={(e) => setNewItem({ ...newItem, price: e.target.value })}
                                         />
                                     </div>
                                 </div>
@@ -305,7 +291,7 @@ export default function WarehousePage() {
                                         type="number"
                                         className="bg-slate-800 border-slate-700"
                                         value={newMovement.amount}
-                                        onChange={(e) => setNewMovement({ ...newMovement, amount: Number(e.target.value) })}
+                                        onChange={(e) => setNewMovement({ ...newMovement, amount: e.target.value })}
                                     />
                                 </div>
                                 {movementType === 'in' && (
@@ -315,7 +301,7 @@ export default function WarehousePage() {
                                             type="number"
                                             className="bg-slate-800 border-slate-700"
                                             value={newMovement.price}
-                                            onChange={(e) => setNewMovement({ ...newMovement, price: Number(e.target.value) })}
+                                            onChange={(e) => setNewMovement({ ...newMovement, price: e.target.value })}
                                         />
                                     </div>
                                 )}

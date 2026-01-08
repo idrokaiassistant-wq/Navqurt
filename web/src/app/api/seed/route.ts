@@ -1,17 +1,15 @@
-import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import bcrypt from "bcryptjs"
+import { withApiErrorHandler, successResponse, notFoundResponse, messageResponse } from "@/lib/api-response"
 
 export async function POST() {
     if (process.env.NODE_ENV === 'production') {
-        return NextResponse.json({ message: "Not Found" }, { status: 404 });
+        return notFoundResponse("Not Found")
     }
-    try {
+
+    return withApiErrorHandler(async () => {
         if (!prisma) {
-            return NextResponse.json(
-                { success: false, error: "DATABASE_URL yo'q. DB sozlang, so'ng seed qiling." },
-                { status: 500 }
-            )
+            throw new Error("DATABASE_URL yo'q. DB sozlang, so'ng seed qiling.")
         }
 
         // Delete existing admin user if exists
@@ -31,28 +29,19 @@ export async function POST() {
             }
         })
 
-        return NextResponse.json({
-            success: true,
+        return successResponse({
             message: "Admin foydalanuvchi yaratildi",
             user: {
                 email: admin.email,
                 name: admin.name
             }
         })
-    } catch (error) {
-        console.error("Seed error:", error)
-        return NextResponse.json(
-            { success: false, error: String(error) },
-            { status: 500 }
-        )
-    }
+    })
 }
 
 export async function GET() {
     if (process.env.NODE_ENV === 'production') {
-        return NextResponse.json({ message: "Not Found" }, { status: 404 });
+        return notFoundResponse("Not Found")
     }
-    return NextResponse.json({
-        message: "POST so'rov yuboring admin yaratish uchun"
-    })
+    return messageResponse("POST so'rov yuboring admin yaratish uchun")
 }

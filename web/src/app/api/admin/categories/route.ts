@@ -1,60 +1,49 @@
-import { NextResponse, type NextRequest } from "next/server"
+import { NextRequest } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { assertAdmin } from "@/lib/api-auth"
+import { withApiErrorHandler, successResponse, createdResponse, badRequestResponse } from "@/lib/api-response"
+import { validateRequired, validateStringLength } from "@/lib/validation"
 
-export async function GET(req: NextRequest) {
-  try {
-    await assertAdmin(req)
+export async function GET(request: NextRequest) {
+    return withApiErrorHandler(async () => {
+        await assertAdmin(request)
 
-    if (!prisma) {
-      return NextResponse.json({ error: "DATABASE_URL yo'q" }, { status: 500 })
-    }
+        const categories = await prisma.category.findMany({
+            orderBy: { createdAt: "desc" },
+        })
 
-    const categories = await prisma.category.findMany({
-      orderBy: { createdAt: "desc" },
+        return successResponse({ categories })
     })
-    return NextResponse.json({ categories })
-  } catch (error: unknown) {
-    if (error instanceof Error && error.message === "Unauthorized") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Failed to fetch categories" },
-      { status: 500 }
-    )
-  }
 }
 
-export async function POST(req: NextRequest) {
-  try {
-    await assertAdmin(req)
+export async function POST(request: NextRequest) {
+    return withApiErrorHandler(async () => {
+        await assertAdmin(request)
 
-    if (!prisma) {
-      return NextResponse.json({ error: "DATABASE_URL yo'q" }, { status: 500 })
-    }
+        const body = await request.json().catch(() => ({}))
+        const name = body?.name ? String(body.name).trim() : ""
+        const color = body?.color ? String(body.color).trim() : null
 
-    const body = await req.json().catch(() => ({}))
-    const name = String(body?.name ?? "").trim()
-    const color = body?.color ? String(body.color) : null
+        // Validation
+        const nameValidation = validateRequired(name, "Nomi")
+        if (!nameValidation.valid) {
+            return badRequestResponse(nameValidation.error!)
+        }
 
-    if (!name) {
-      return NextResponse.json({ error: "name majburiy" }, { status: 400 })
-    }
+        const nameLengthValidation = validateStringLength(name, 1, 100, "Nomi")
+        if (!nameLengthValidation.valid) {
+            return badRequestResponse(nameLengthValidation.error!)
+        }
 
-    const category = await prisma.category.create({
-      data: { name, color: color || null },
+        const category = await prisma.category.create({
+            data: { 
+                name, 
+                color: color && color.length > 0 ? color : null 
+            },
+        })
+
+        return createdResponse({ category })
     })
-
-    return NextResponse.json({ category }, { status: 201 })
-  } catch (error: unknown) {
-    if (error instanceof Error && error.message === "Unauthorized") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Failed to create category" },
-      { status: 500 }
-    )
-  }
 }
 
 

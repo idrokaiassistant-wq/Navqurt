@@ -15,20 +15,22 @@ import {
     Menu,
     ChevronRight,
     Sun,
+    Moon,
     Bell,
     Warehouse
 } from "lucide-react"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { useState } from "react"
+import { useStore } from "@/lib/store"
 
 const navItems = [
-    { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, badge: null },
-    { href: "/dashboard/orders", label: "Buyurtmalar", icon: ClipboardList, badge: 12 },
-    { href: "/dashboard/warehouse", label: "Omborxona", icon: Warehouse, badge: null },
-    { href: "/dashboard/products", label: "Mahsulotlar", icon: Package, badge: null },
-    { href: "/dashboard/categories", label: "Kategoriyalar", icon: FolderOpen, badge: null },
-    { href: "/dashboard/customers", label: "Mijozlar", icon: Users, badge: null },
-    { href: "/dashboard/settings", label: "Sozlamalar", icon: Settings, badge: null },
+    { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+    { href: "/dashboard/orders", label: "Buyurtmalar", icon: ClipboardList },
+    { href: "/dashboard/warehouse", label: "Omborxona", icon: Warehouse },
+    { href: "/dashboard/products", label: "Mahsulotlar", icon: Package },
+    { href: "/dashboard/categories", label: "Kategoriyalar", icon: FolderOpen },
+    { href: "/dashboard/customers", label: "Mijozlar", icon: Users },
+    { href: "/dashboard/settings", label: "Sozlamalar", icon: Settings },
 ]
 
 function NavContent({ 
@@ -77,11 +79,7 @@ function NavContent({
                                 <Icon className="h-5 w-5" />
                                 <span>{item.label}</span>
                             </div>
-                            {item.badge ? (
-                                <span className="bg-blue-500 text-white text-xs px-2 py-0.5 rounded-full">
-                                    {item.badge}
-                                </span>
-                            ) : isDashboard ? (
+                            {isDashboard ? (
                                 <ChevronRight className="h-4 w-4" />
                             ) : null}
                         </Link>
@@ -106,6 +104,7 @@ function NavContent({
 export function Sidebar() {
     const pathname = usePathname()
     const [open, setOpen] = useState(false)
+    const { theme, toggleTheme } = useStore()
 
     const handleLogout = () => {
         signOut({ callbackUrl: "/login" })
@@ -129,8 +128,11 @@ export function Sidebar() {
                     <span className="text-lg font-semibold text-white">Dashboard</span>
                 </div>
                 <div className="flex items-center gap-2">
-                    <button className="p-2 bg-slate-800 rounded-full text-amber-400">
-                        <Sun className="h-5 w-5" />
+                    <button 
+                        onClick={toggleTheme}
+                        className="p-2 bg-slate-800 rounded-full text-amber-400 hover:bg-slate-700 transition-colors"
+                    >
+                        {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
                     </button>
                     <button className="p-2 relative text-slate-400">
                         <Bell className="h-5 w-5" />

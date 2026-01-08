@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import Image from "next/image"
+import { apiGet, apiPost, apiPatch, apiDelete, apiPostFormData, handleApiError } from "@/lib/api-client"
+import { logError } from "@/lib/logger"
 
 interface Category {
     id: string
@@ -54,16 +56,13 @@ export default function ProductsPage() {
 
     const fetchProducts = async () => {
         try {
-            const res = await fetch("/api/admin/products", { cache: "no-store" })
-            if (res.ok) {
-                const data = await res.json()
-                setProducts(data.products ?? [])
-            } else {
-                const errorData = await res.json().catch(() => ({}))
-                console.error("Failed to fetch products:", errorData.error || "Xatolik")
-            }
+            setLoading(true)
+            const data = await apiGet<{ products: Product[] }>("/api/admin/products")
+            setProducts(data.products ?? [])
         } catch (error) {
-            console.error("Failed to fetch products:", error)
+            const errorMessage = handleApiError(error)
+            logError("Failed to fetch products:", errorMessage)
+            alert(errorMessage)
         } finally {
             setLoading(false)
         }
@@ -71,13 +70,11 @@ export default function ProductsPage() {
 
     const fetchCategories = async () => {
         try {
-            const res = await fetch("/api/admin/categories", { cache: "no-store" })
-            if (res.ok) {
-                const data = await res.json()
-                setCategories(data.categories ?? [])
-            }
+            const data = await apiGet<{ categories: Category[] }>("/api/admin/categories")
+            setCategories(data.categories ?? [])
         } catch (error) {
-            console.error("Failed to fetch categories:", error)
+            const errorMessage = handleApiError(error)
+            logError("Failed to fetch categories:", errorMessage)
         }
     }
 
@@ -87,25 +84,20 @@ export default function ProductsPage() {
             const formDataUpload = new FormData()
             formDataUpload.append("file", file)
 
-            const res = await fetch("/api/admin/upload", {
-                method: "POST",
-                body: formDataUpload
-            })
-
-            if (res.ok) {
-                const data = await res.json()
-                setFormData(prev => ({
-                    ...prev,
-                    image: data.url,
-                    imagePublicId: data.public_id
-                }))
-            } else {
-                const error = await res.json()
-                alert(error.error || "Rasm yuklashda xatolik")
-            }
+            const data = await apiPostFormData<{ url: string; public_id: string }>(
+                "/api/admin/upload",
+                formDataUpload
+            )
+            
+            setFormData(prev => ({
+                ...prev,
+                image: data.url,
+                imagePublicId: data.public_id
+            }))
         } catch (error) {
-            console.error("Failed to upload image:", error)
-            alert("Rasm yuklashda xatolik")
+            const errorMessage = handleApiError(error)
+            logError("Failed to upload image:", errorMessage)
+            alert(errorMessage)
         } finally {
             setUploading(false)
         }
@@ -114,54 +106,40 @@ export default function ProductsPage() {
     const handleRemoveImage = async () => {
         if (formData.imagePublicId) {
             try {
-                // Bizda delete uchun endpoint /api/admin/upload/[filename] (u hozir public_id qabul qilyapti)
-                // Lekin u POST metodini kutyapti (Cloudinary destroy uchun)
-                await fetch(`/api/admin/upload/delete`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ public_id: formData.imagePublicId })
+                await apiPost<{ message: string }>("/api/admin/upload/delete", {
+                    public_id: formData.imagePublicId
                 })
             } catch (error) {
-                console.error("Failed to delete image:", error)
+                logError("Failed to delete image:", handleApiError(error))
             }
-            setFormData(prev => ({ ...prev, image: "", imagePublicId: "" }))
-        } else {
-            setFormData(prev => ({ ...prev, image: "", imagePublicId: "" }))
         }
+        setFormData(prev => ({ ...prev, image: "", imagePublicId: "" }))
     }
 
     const handleAdd = async () => {
         try {
-            const res = await fetch("/api/admin/products", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(formData)
-            })
-            if (res.ok) {
-                await fetchProducts()
-                setIsAddOpen(false)
-                setFormData({ name: "", description: "", price: "", weight: "", categoryIds: [], image: "", imagePublicId: "" })
-            }
+            await apiPost<{ data: Product }>("/api/admin/products", formData)
+            await fetchProducts()
+            setIsAddOpen(false)
+            setFormData({ name: "", description: "", price: "", weight: "", categoryIds: [], image: "", imagePublicId: "" })
         } catch (error) {
-            console.error("Failed to add product:", error)
+            const errorMessage = handleApiError(error)
+            logError("Failed to add product:", errorMessage)
+            alert(errorMessage)
         }
     }
 
     const handleEdit = async () => {
         if (!selectedProduct) return
         try {
-            const res = await fetch(`/api/admin/products/${selectedProduct.id}`, {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(formData)
-            })
-            if (res.ok) {
-                await fetchProducts()
-                setIsEditOpen(false)
-                setSelectedProduct(null)
-            }
+            await apiPatch<{ data: Product }>(`/api/admin/products/${selectedProduct.id}`, formData)
+            await fetchProducts()
+            setIsEditOpen(false)
+            setSelectedProduct(null)
         } catch (error) {
-            console.error("Failed to edit product:", error)
+            const errorMessage = handleApiError(error)
+            logError("Failed to edit product:", errorMessage)
+            alert(errorMessage)
         }
     }
 
@@ -172,23 +150,21 @@ export default function ProductsPage() {
         // Delete image from Cloudinary if exists
         if (product?.imagePublicId) {
             try {
-                await fetch(`/api/admin/upload/delete`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ public_id: product.imagePublicId })
+                await apiPost<{ message: string }>("/api/admin/upload/delete", {
+                    public_id: product.imagePublicId
                 })
             } catch (error) {
-                console.error("Failed to delete image:", error)
+                logError("Failed to delete image:", handleApiError(error))
             }
         }
 
         try {
-            const res = await fetch(`/api/admin/products/${id}`, { method: "DELETE" })
-            if (res.ok) {
-                await fetchProducts()
-            }
+            await apiDelete<{ message: string }>(`/api/admin/products/${id}`)
+            await fetchProducts()
         } catch (error) {
-            console.error("Failed to delete product:", error)
+            const errorMessage = handleApiError(error)
+            logError("Failed to delete product:", errorMessage)
+            alert(errorMessage)
         }
     }
 

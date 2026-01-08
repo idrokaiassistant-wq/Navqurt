@@ -1,31 +1,34 @@
-import { NextRequest, NextResponse } from "next/server"
+import { NextRequest } from "next/server"
 import { assertAdmin } from "@/lib/api-auth"
 import cloudinary from "@/lib/cloudinary"
+import { withApiErrorHandler, badRequestResponse, messageResponse } from "@/lib/api-response"
+import { validateRequired } from "@/lib/validation"
+import type { CloudinaryDeleteResponse } from "@/lib/types"
 
-export async function POST(request: NextRequest) {
-    try {
+export async function POST(
+    request: NextRequest,
+    { params }: { params: Promise<{ filename: string }> }
+) {
+    return withApiErrorHandler(async () => {
         await assertAdmin(request)
-        const { public_id } = await request.json()
+        const { filename } = await params
+        const body = await request.json()
+        const { public_id } = body
 
-        if (!public_id) {
-            return NextResponse.json({ error: "public_id topilmadi" }, { status: 400 })
+        // Use filename from params if public_id not provided in body
+        const publicIdToDelete = public_id || filename
+
+        const publicIdValidation = validateRequired(publicIdToDelete, "Public ID")
+        if (!publicIdValidation.valid) {
+            return badRequestResponse(publicIdValidation.error!)
         }
 
-        const result = await cloudinary.uploader.destroy(public_id)
+        const result = await cloudinary.uploader.destroy(String(publicIdToDelete)) as CloudinaryDeleteResponse
 
         if (result.result !== 'ok') {
-            return NextResponse.json({ error: "Rasmni o'chirishda xatolik", detail: result }, { status: 500 })
+            return messageResponse("Rasm allaqachon o'chirilgan yoki topilmadi")
         }
 
-        return NextResponse.json({ success: true })
-    } catch (error: unknown) {
-        if (error instanceof Error && error.message === "Unauthorized") {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-        }
-        console.error("Delete error:", error)
-        return NextResponse.json(
-            { error: error instanceof Error ? error.message : "Rasmni o'chirishda xatolik" },
-            { status: 500 }
-        )
-    }
+        return messageResponse("Rasm muvaffaqiyatli o'chirildi")
+    })
 }

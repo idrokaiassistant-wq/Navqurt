@@ -1,9 +1,12 @@
-import { NextRequest, NextResponse } from "next/server"
+import { NextRequest } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { assertAdmin } from "@/lib/api-auth"
+import { StockMovementType } from "@prisma/client"
+import { withApiErrorHandler, successResponse, createdResponse, badRequestResponse, notFoundResponse } from "@/lib/api-response"
+import { validateRequired, parseFloatSafe, parseIntSafe, validateEnum } from "@/lib/validation"
 
 export async function GET(request: NextRequest) {
-    try {
+    return withApiErrorHandler(async () => {
         await assertAdmin(request)
 
         const movements = await prisma.stockMovement.findMany({
@@ -13,23 +16,39 @@ export async function GET(request: NextRequest) {
             orderBy: { date: "desc" }
         })
 
-        return NextResponse.json(movements)
-    } catch (error: unknown) {
-        if (error instanceof Error && error.message === "Unauthorized") {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-        }
-        return NextResponse.json(
-            { error: error instanceof Error ? error.message : "Failed to fetch movements" },
-            { status: 500 }
-        )
-    }
+        return successResponse(movements)
+    })
 }
 
 export async function POST(request: NextRequest) {
-    try {
+    return withApiErrorHandler(async () => {
         await assertAdmin(request)
         const body = await request.json()
         const { type, itemId, amount, unit, price, note } = body
+
+        // Validation
+        const typeValidation = validateEnum<StockMovementType>(
+            type,
+            Object.values(StockMovementType) as StockMovementType[],
+            "Harakat turi"
+        )
+        if (!typeValidation.valid) {
+            return badRequestResponse(typeValidation.error!)
+        }
+
+        const itemIdValidation = validateRequired(itemId, "Mahsulot ID")
+        if (!itemIdValidation.valid) {
+            return badRequestResponse(itemIdValidation.error!)
+        }
+
+        const amountValidation = parseFloatSafe(amount, "Miqdor")
+        if (!amountValidation.valid) {
+            return badRequestResponse(amountValidation.error!)
+        }
+
+        if (amountValidation.value! <= 0) {
+            return badRequestResponse("Miqdor musbat son bo'lishi kerak")
+        }
 
         // Update stock item quantity
         const stockItem = await prisma.stockItem.findUnique({
@@ -37,45 +56,49 @@ export async function POST(request: NextRequest) {
         })
 
         if (!stockItem) {
-            return NextResponse.json(
-                { error: "Stock item not found" },
-                { status: 404 }
-            )
+            return notFoundResponse("Omborxona mahsuloti topilmadi")
         }
 
-        const newAmount = type === "IN"
-            ? stockItem.current + parseFloat(amount)
-            : stockItem.current - parseFloat(amount)
+        const newAmount = typeValidation.value === "IN"
+            ? stockItem.current + amountValidation.value!
+            : stockItem.current - amountValidation.value!
+
+        // Validate that OUT doesn't result in negative stock
+        if (newAmount < 0) {
+            return badRequestResponse("Mavjud miqdordan ko'p chiqarib bo'lmaydi")
+        }
 
         await prisma.stockItem.update({
             where: { id: itemId },
-            data: { current: Math.max(0, newAmount) }
+            data: { current: newAmount }
         })
+
+        // Parse price if provided
+        let parsedPrice: number | null = null
+        if (price !== undefined && price !== null) {
+            const priceValidation = parseIntSafe(price, "Narx")
+            if (!priceValidation.valid) {
+                return badRequestResponse(priceValidation.error!)
+            }
+            parsedPrice = priceValidation.value!
+        }
 
         // Create movement record
         const movement = await prisma.stockMovement.create({
             data: {
-                type,
+                type: typeValidation.value!,
                 itemId,
-                amount: parseFloat(amount),
+                amount: amountValidation.value!,
                 unit: unit || stockItem.unit,
-                price: price ? parseInt(price) : null,
-                note
+                price: parsedPrice,
+                note: note?.trim() || null
             },
             include: {
                 item: true
             }
         })
 
-        return NextResponse.json(movement, { status: 201 })
-    } catch (error: unknown) {
-        if (error instanceof Error && error.message === "Unauthorized") {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-        }
-        return NextResponse.json(
-            { error: error instanceof Error ? error.message : "Failed to create movement" },
-            { status: 500 }
-        )
-    }
+        return createdResponse(movement)
+    })
 }
 

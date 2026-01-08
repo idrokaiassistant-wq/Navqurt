@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation"
 import { Shield, User, Lock, Eye, EyeOff, ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { SplashScreen } from "@/components/splash-screen"
+import { DEFAULT_EMAIL_DOMAIN } from "@/lib/constants"
 
 export default function LoginPage() {
     const router = useRouter()
@@ -23,7 +24,7 @@ export default function LoginPage() {
 
         try {
             const result = await signIn("credentials", {
-                email: login.includes("@") ? login : `${login}@navqurt.uz`,
+                email: login.includes("@") ? login : `${login}${DEFAULT_EMAIL_DOMAIN}`,
                 password,
                 redirect: false
             })

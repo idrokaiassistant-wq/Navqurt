@@ -1,45 +1,79 @@
-import { NextRequest, NextResponse } from "next/server"
+import { NextRequest } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { assertAdmin } from "@/lib/api-auth"
+import { withApiErrorHandler, successResponse, badRequestResponse, messageResponse } from "@/lib/api-response"
+import { parseFloatSafe, parseIntSafe, validateStringLength } from "@/lib/validation"
 
 export async function PATCH(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> }
 ) {
-    try {
+    return withApiErrorHandler(async () => {
         await assertAdmin(request)
         const { id } = await params
         const body = await request.json()
         const { name, current, unit, minRequired, price } = body
 
+        // Build update data
+        const updateData: {
+            name?: string
+            current?: number
+            unit?: string
+            minRequired?: number
+            price?: number
+        } = {}
+
+        if (name !== undefined) {
+            const trimmedName = String(name).trim()
+            const nameLengthValidation = validateStringLength(trimmedName, 1, 200, "Nomi")
+            if (!nameLengthValidation.valid) {
+                return badRequestResponse(nameLengthValidation.error!)
+            }
+            updateData.name = trimmedName
+        }
+
+        if (current !== undefined && current !== null) {
+            const currentValidation = parseFloatSafe(current, "Hozirgi miqdor")
+            if (!currentValidation.valid) {
+                return badRequestResponse(currentValidation.error!)
+            }
+            updateData.current = currentValidation.value
+        }
+
+        if (unit !== undefined) {
+            updateData.unit = String(unit).trim() || "kg"
+        }
+
+        if (minRequired !== undefined && minRequired !== null) {
+            const minRequiredValidation = parseFloatSafe(minRequired, "Minimal talab")
+            if (!minRequiredValidation.valid) {
+                return badRequestResponse(minRequiredValidation.error!)
+            }
+            updateData.minRequired = minRequiredValidation.value
+        }
+
+        if (price !== undefined && price !== null) {
+            const priceValidation = parseIntSafe(price, "Narx")
+            if (!priceValidation.valid) {
+                return badRequestResponse(priceValidation.error!)
+            }
+            updateData.price = priceValidation.value
+        }
+
         const item = await prisma.stockItem.update({
             where: { id },
-            data: {
-                name,
-                current: current !== undefined ? parseFloat(current) : undefined,
-                unit,
-                minRequired: minRequired !== undefined ? parseFloat(minRequired) : undefined,
-                price: price !== undefined ? parseFloat(price) : undefined
-            }
+            data: updateData
         })
 
-        return NextResponse.json(item)
-    } catch (error: unknown) {
-        if (error instanceof Error && error.message === "Unauthorized") {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-        }
-        return NextResponse.json(
-            { error: error instanceof Error ? error.message : "Failed to update stock item" },
-            { status: 500 }
-        )
-    }
+        return successResponse(item)
+    })
 }
 
 export async function DELETE(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> }
 ) {
-    try {
+    return withApiErrorHandler(async () => {
         await assertAdmin(request)
         const { id } = await params
 
@@ -47,14 +81,6 @@ export async function DELETE(
             where: { id }
         })
 
-        return NextResponse.json({ success: true })
-    } catch (error: unknown) {
-        if (error instanceof Error && error.message === "Unauthorized") {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-        }
-        return NextResponse.json(
-            { error: error instanceof Error ? error.message : "Failed to delete stock item" },
-            { status: 500 }
-        )
-    }
+        return messageResponse("Omborxona mahsuloti muvaffaqiyatli o'chirildi")
+    })
 }

@@ -1,10 +1,23 @@
 import { v2 as cloudinary } from 'cloudinary';
+import { getCloudinaryConfig } from './config';
+import { logWarn } from './logger';
 
-cloudinary.config({
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-    api_key: process.env.CLOUDINARY_API_KEY,
-    api_secret: process.env.CLOUDINARY_API_SECRET,
+/**
+ * Cloudinary Configuration
+ * Validates environment variables before configuration
+ */
+try {
+  const config = getCloudinaryConfig();
+  cloudinary.config({
+    cloud_name: config.cloud_name,
+    api_key: config.api_key,
+    api_secret: config.api_secret,
     secure: true,
-});
+  });
+} catch (error) {
+  // Cloudinary config is optional for some features
+  // Will throw error only when actually used
+  logWarn('Cloudinary configuration warning:', error instanceof Error ? error.message : 'Unknown error');
+}
 
 export default cloudinary;

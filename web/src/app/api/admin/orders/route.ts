@@ -1,9 +1,10 @@
-import { NextRequest, NextResponse } from "next/server"
+import { NextRequest } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { assertAdmin } from "@/lib/api-auth"
+import { withApiErrorHandler, successResponse } from "@/lib/api-response"
 
 export async function GET(request: NextRequest) {
-    try {
+    return withApiErrorHandler(async () => {
         await assertAdmin(request)
 
         const orders = await prisma.order.findMany({
@@ -20,15 +21,7 @@ export async function GET(request: NextRequest) {
             orderBy: { createdAt: "desc" }
         })
 
-        return NextResponse.json({ orders })
-    } catch (error: unknown) {
-        if (error instanceof Error && error.message === "Unauthorized") {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-        }
-        return NextResponse.json(
-            { error: error instanceof Error ? error.message : "Failed to fetch orders" },
-            { status: 500 }
-        )
-    }
+        return successResponse({ orders })
+    })
 }
 

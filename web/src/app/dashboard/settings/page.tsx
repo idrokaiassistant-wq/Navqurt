@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react"
 import { User, Lock, Bell, Palette, Check, AlertCircle } from "lucide-react"
 import { useStore } from "@/lib/store"
+import { apiGet, apiPatch, handleApiError } from "@/lib/api-client"
+import { STORAGE_KEYS, DEFAULT_NOTIFICATIONS } from "@/lib/constants"
 
 type AdminProfile = {
     id: string
@@ -16,7 +18,6 @@ export default function SettingsPage() {
     const { theme, toggleTheme } = useStore()
 
     // Profile state
-    const [profile, setProfile] = useState<AdminProfile | null>(null)
     const [profileForm, setProfileForm] = useState({ name: "", email: "" })
     const [profileLoading, setProfileLoading] = useState(true)
     const [profileSaving, setProfileSaving] = useState(false)
@@ -30,32 +31,28 @@ export default function SettingsPage() {
     const [errorMessage, setErrorMessage] = useState("")
 
     // Notifications state (localStorage based)
-    const [notifications, setNotifications] = useState({
-        newOrders: true,
-        deliveredOrders: true,
-        newCustomers: false,
-        systemUpdates: true
-    })
+    const [notifications, setNotifications] = useState(DEFAULT_NOTIFICATIONS)
 
     useEffect(() => {
         loadProfile()
         // Load notifications from localStorage
-        const savedNotifications = localStorage.getItem("navqurt_notifications")
-        if (savedNotifications) {
-            setNotifications(JSON.parse(savedNotifications))
+        try {
+            const savedNotifications = localStorage.getItem(STORAGE_KEYS.NOTIFICATIONS)
+            if (savedNotifications) {
+                setNotifications(JSON.parse(savedNotifications))
+            }
+        } catch {
+            // Ignore localStorage parse errors
         }
     }, [])
 
     const loadProfile = async () => {
         try {
-            const res = await fetch("/api/admin/settings", { cache: "no-store" })
-            if (res.ok) {
-                const data = await res.json()
-                setProfile(data)
-                setProfileForm({ name: data.name || "", email: data.email })
-            }
+            const data = await apiGet<AdminProfile>("/api/admin/settings")
+            setProfileForm({ name: data.name || "", email: data.email })
         } catch (error) {
-            console.error("Failed to load profile:", error)
+            const errorMessage = handleApiError(error)
+            setErrorMessage(errorMessage)
         } finally {
             setProfileLoading(false)
         }
@@ -66,17 +63,15 @@ export default function SettingsPage() {
         setSuccessMessage("")
         setErrorMessage("")
         try {
-            const res = await fetch("/api/admin/settings", {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ name: profileForm.name, email: profileForm.email })
+            await apiPatch<{ message?: string }>("/api/admin/settings", {
+                name: profileForm.name,
+                email: profileForm.email
             })
-            const data = await res.json()
-            if (!res.ok) throw new Error(data.error || "Xatolik")
             setSuccessMessage("Profil muvaffaqiyatli saqlandi")
             await loadProfile()
         } catch (error) {
-            setErrorMessage(String(error))
+            const errorMessage = handleApiError(error)
+            setErrorMessage(errorMessage)
         } finally {
             setProfileSaving(false)
         }
@@ -96,20 +91,15 @@ export default function SettingsPage() {
         setSuccessMessage("")
         setErrorMessage("")
         try {
-            const res = await fetch("/api/admin/settings", {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    currentPassword: securityForm.currentPassword,
-                    newPassword: securityForm.newPassword
-                })
+            await apiPatch<{ message?: string }>("/api/admin/settings", {
+                currentPassword: securityForm.currentPassword,
+                newPassword: securityForm.newPassword
             })
-            const data = await res.json()
-            if (!res.ok) throw new Error(data.error || "Xatolik")
             setSuccessMessage("Parol muvaffaqiyatli yangilandi")
             setSecurityForm({ currentPassword: "", newPassword: "", confirmPassword: "" })
         } catch (error) {
-            setErrorMessage(String(error))
+            const errorMessage = handleApiError(error)
+            setErrorMessage(errorMessage)
         } finally {
             setSecuritySaving(false)
         }
@@ -118,7 +108,11 @@ export default function SettingsPage() {
     const toggleNotification = (key: keyof typeof notifications) => {
         const updated = { ...notifications, [key]: !notifications[key] }
         setNotifications(updated)
-        localStorage.setItem("navqurt_notifications", JSON.stringify(updated))
+        try {
+            localStorage.setItem(STORAGE_KEYS.NOTIFICATIONS, JSON.stringify(updated))
+        } catch {
+            // Ignore localStorage errors (e.g., quota exceeded)
+        }
     }
 
     return (

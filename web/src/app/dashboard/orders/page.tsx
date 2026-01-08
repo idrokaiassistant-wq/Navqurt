@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react"
 import { Clock } from "lucide-react"
 import { timeAgo } from "@/lib/date-utils"
+import { apiGet, apiPatch, handleApiError } from "@/lib/api-client"
+import { logError } from "@/lib/logger"
 
 interface Order {
     id: string
@@ -37,16 +39,11 @@ export default function OrdersPage() {
 
     const fetchOrders = async () => {
         try {
-            const res = await fetch("/api/admin/orders", { cache: "no-store" })
-            if (res.ok) {
-                const data = await res.json()
-                setOrders(data.orders ?? [])
-            } else {
-                const errorData = await res.json().catch(() => ({}))
-                console.error("Failed to fetch orders:", errorData.error || "Xatolik")
-            }
+            const data = await apiGet<{ orders: Order[] }>("/api/admin/orders")
+            setOrders(data.orders ?? [])
         } catch (error) {
-            console.error("Failed to fetch orders:", error)
+            const errorMessage = handleApiError(error)
+            logError("Failed to fetch orders:", errorMessage)
         } finally {
             setLoading(false)
         }
@@ -54,16 +51,11 @@ export default function OrdersPage() {
 
     const handleStatusChange = async (orderId: string, newStatus: string) => {
         try {
-            const res = await fetch(`/api/admin/orders/${orderId}`, {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ status: newStatus })
-            })
-            if (res.ok) {
-                await fetchOrders()
-            }
+            await apiPatch<Order>(`/api/admin/orders/${orderId}`, { status: newStatus })
+            await fetchOrders()
         } catch (error) {
-            console.error("Failed to update order status:", error)
+            const errorMessage = handleApiError(error)
+            logError("Failed to update order status:", errorMessage)
         }
     }
 

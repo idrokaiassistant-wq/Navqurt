@@ -1,38 +1,35 @@
-import { NextRequest, NextResponse } from "next/server"
+import { NextRequest } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { assertAdmin } from "@/lib/api-auth"
 import { OrderStatus } from "@prisma/client"
+import { withApiErrorHandler, successResponse, badRequestResponse } from "@/lib/api-response"
+import { validateEnum } from "@/lib/validation"
 
 export async function PATCH(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> }
 ) {
-    try {
+    return withApiErrorHandler(async () => {
         await assertAdmin(request)
         const { id } = await params
         const body = await request.json()
         const { status } = body
 
-        if (!status || !Object.values(OrderStatus).includes(status)) {
-            return NextResponse.json(
-                { error: "Invalid status" },
-                { status: 400 }
-            )
+        // Validation
+        const statusValidation = validateEnum<OrderStatus>(
+            status,
+            Object.values(OrderStatus) as OrderStatus[],
+            "Status"
+        )
+        if (!statusValidation.valid) {
+            return badRequestResponse(statusValidation.error!)
         }
 
         const order = await prisma.order.update({
             where: { id },
-            data: { status }
+            data: { status: statusValidation.value! }
         })
 
-        return NextResponse.json(order)
-    } catch (error: unknown) {
-        if (error instanceof Error && error.message === "Unauthorized") {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-        }
-        return NextResponse.json(
-            { error: error instanceof Error ? error.message : "Failed to update order" },
-            { status: 500 }
-        )
-    }
+        return successResponse({ order })
+    })
 }

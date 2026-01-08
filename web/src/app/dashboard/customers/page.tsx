@@ -1,9 +1,10 @@
 
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useState, useRef } from "react"
 import { Search } from "lucide-react"
 import { formatPrice } from "@/lib/date-utils"
+import { apiGet, handleApiError } from "@/lib/api-client"
 
 type ApiCustomer = {
     id: string
@@ -21,24 +22,31 @@ export default function CustomersPage() {
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState("")
 
+    const mountedRef = useRef(true)
+
     useEffect(() => {
-        let mounted = true
+        mountedRef.current = true
         ;(async () => {
             try {
                 setLoading(true)
                 setError("")
-                const res = await fetch("/api/admin/customers", { cache: "no-store" })
-                const data = await res.json()
-                if (!res.ok) throw new Error(data?.error ?? "Xatolik")
-                if (mounted) setCustomers(data.customers ?? [])
+                const data = await apiGet<{ customers: ApiCustomer[] }>("/api/admin/customers")
+                if (mountedRef.current) {
+                    setCustomers(data.customers ?? [])
+                }
             } catch (e) {
-                if (mounted) setError(String(e))
+                if (mountedRef.current) {
+                    const errorMessage = handleApiError(e)
+                    setError(errorMessage)
+                }
             } finally {
-                if (mounted) setLoading(false)
+                if (mountedRef.current) {
+                    setLoading(false)
+                }
             }
         })()
         return () => {
-            mounted = false
+            mountedRef.current = false
         }
     }, [])
 
@@ -105,8 +113,8 @@ export default function CustomersPage() {
                                     </td>
                                 </tr>
                             )}
-                            {filtered.map((customer, index) => (
-                                <tr key={index} className="border-b border-slate-800 last:border-0 hover:bg-slate-800/50 transition-colors">
+                            {filtered.map((customer) => (
+                                <tr key={customer.id} className="border-b border-slate-800 last:border-0 hover:bg-slate-800/50 transition-colors">
                                     <td className="px-5 py-4">
                                         <div className="flex items-center gap-3">
                                             <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-semibold">

@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { apiGet, apiPost, apiPatch, apiDelete, handleApiError } from "@/lib/api-client"
 
 type ApiCategory = {
     id: string
@@ -32,21 +33,11 @@ export default function CategoriesPage() {
         setLoading(true)
         setError("")
         try {
-            const res = await fetch("/api/admin/categories", { cache: "no-store" })
-            if (!res.ok) {
-                const errorText = await res.text()
-                let errorData
-                try {
-                    errorData = JSON.parse(errorText)
-                } catch {
-                    throw new Error(errorText || "Xatolik yuz berdi")
-                }
-                throw new Error(errorData?.error ?? "Xatolik")
-            }
-            const data = await res.json()
+            const data = await apiGet<{ categories: ApiCategory[] }>("/api/admin/categories")
             setCategories(data.categories ?? [])
         } catch (e) {
-            setError(String(e))
+            const errorMessage = handleApiError(e)
+            setError(errorMessage)
         } finally {
             setLoading(false)
         }
@@ -68,18 +59,13 @@ export default function CategoriesPage() {
                 name: newCategory.name.trim(),
                 color: newCategory.color.trim() || null,
             }
-            const res = await fetch("/api/admin/categories", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload),
-            })
-            const data = await res.json()
-            if (!res.ok) throw new Error(data?.error ?? "Xatolik")
+            await apiPost<{ category: ApiCategory }>("/api/admin/categories", payload)
             setNewCategory({ name: "", color: "" })
             setIsAddOpen(false)
             await load()
         } catch (e) {
-            setError(String(e))
+            const errorMessage = handleApiError(e)
+            setError(errorMessage)
         }
     }
 
@@ -96,21 +82,14 @@ export default function CategoriesPage() {
                 name: editForm.name.trim(),
                 color: editForm.color.trim() || null,
             }
-            const res = await fetch(`/api/admin/categories/${editCategory.id}`, {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload),
-            })
-            if (!res.ok) {
-                const data = await res.json()
-                throw new Error(data?.error ?? "Xatolik")
-            }
+            await apiPatch<{ category: ApiCategory }>(`/api/admin/categories/${editCategory.id}`, payload)
             setEditCategory(null)
             setEditForm({ name: "", color: "" })
             setIsEditOpen(false)
             await load()
         } catch (e) {
-            setError(String(e))
+            const errorMessage = handleApiError(e)
+            setError(errorMessage)
         }
     }
 
@@ -211,11 +190,11 @@ export default function CategoriesPage() {
                                     onClick={async () => {
                                         if (!confirm(`"${cat.name}" kategoriyasini o'chirmoqchimisiz?`)) return
                                         try {
-                                            const res = await fetch(`/api/admin/categories/${cat.id}`, { method: "DELETE" })
-                                            if (!res.ok) throw new Error("Xatolik")
+                                            await apiDelete<{ message: string }>(`/api/admin/categories/${cat.id}`)
                                             await load()
                                         } catch (e) {
-                                            setError(String(e))
+                                            const errorMessage = handleApiError(e)
+                                            setError(errorMessage)
                                         }
                                     }}
                                 >

@@ -1,9 +1,11 @@
-import { NextRequest, NextResponse } from "next/server"
+import { NextRequest } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { assertAdmin } from "@/lib/api-auth"
+import { withApiErrorHandler, successResponse, createdResponse, badRequestResponse } from "@/lib/api-response"
+import { validateRequired, parseIntSafe, validateArray } from "@/lib/validation"
 
 export async function GET(request: NextRequest) {
-    try {
+    return withApiErrorHandler(async () => {
         await assertAdmin(request)
 
         const products = await prisma.product.findMany({
@@ -25,32 +27,48 @@ export async function GET(request: NextRequest) {
             categoryNames: product.categories.map(pc => pc.category.name)
         }))
 
-        return NextResponse.json({ products: productsWithCategories })
-    } catch (error: unknown) {
-        if (error instanceof Error && error.message === "Unauthorized") {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-        }
-        return NextResponse.json(
-            { error: error instanceof Error ? error.message : "Failed to fetch products" },
-            { status: 500 }
-        )
-    }
+        return successResponse({ products: productsWithCategories })
+    })
 }
 
 export async function POST(request: NextRequest) {
-    try {
+    return withApiErrorHandler(async () => {
         await assertAdmin(request)
         const body = await request.json()
         const { name, description, image, imagePublicId, price, weight, isActive, categoryIds } = body
 
+        // Validation
+        const nameValidation = validateRequired(name, "Nomi")
+        if (!nameValidation.valid) {
+            return badRequestResponse(nameValidation.error!)
+        }
+
+        const priceValidation = parseIntSafe(price, "Narx")
+        if (!priceValidation.valid) {
+            return badRequestResponse(priceValidation.error!)
+        }
+
+        const weightValidation = parseIntSafe(weight, "Og'irlik")
+        if (!weightValidation.valid) {
+            return badRequestResponse(weightValidation.error!)
+        }
+
+        // Validate categoryIds if provided
+        if (categoryIds !== undefined && categoryIds !== null) {
+            const categoryIdsValidation = validateArray<string>(categoryIds, "Kategoriyalar")
+            if (!categoryIdsValidation.valid) {
+                return badRequestResponse(categoryIdsValidation.error!)
+            }
+        }
+
         const product = await prisma.product.create({
             data: {
-                name,
-                description,
-                image,
-                imagePublicId,
-                price: parseInt(price),
-                weight: parseInt(weight),
+                name: name.trim(),
+                description: description?.trim() || null,
+                image: image || null,
+                imagePublicId: imagePublicId || null,
+                price: priceValidation.value!,
+                weight: weightValidation.value!,
                 isActive: isActive !== false,
                 categories: categoryIds?.length ? {
                     create: categoryIds.map((categoryId: string) => ({
@@ -65,15 +83,14 @@ export async function POST(request: NextRequest) {
             }
         })
 
-        return NextResponse.json(product, { status: 201 })
-    } catch (error: unknown) {
-        if (error instanceof Error && error.message === "Unauthorized") {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+        // Transform response
+        const productWithCategories = {
+            ...product,
+            categoryIds: product.categories.map(pc => pc.categoryId),
+            categoryNames: product.categories.map(pc => pc.category.name)
         }
-        return NextResponse.json(
-            { error: error instanceof Error ? error.message : "Failed to create product" },
-            { status: 500 }
-        )
-    }
+
+        return createdResponse(productWithCategories)
+    })
 }
 

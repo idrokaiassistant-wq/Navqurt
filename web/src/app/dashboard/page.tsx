@@ -1,8 +1,10 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback } from "react"
 import { ClipboardList, TrendingUp, Users, Package, Clock } from "lucide-react"
 import { timeAgo, formatPrice } from "@/lib/date-utils"
+import { apiGet, handleApiError } from "@/lib/api-client"
+import { logError } from "@/lib/logger"
 
 const statusMap: Record<string, { label: string; color: string }> = {
     NEW: { label: "Yangi", color: "bg-emerald-500" },
@@ -20,52 +22,59 @@ export default function DashboardPage() {
         newCustomers: 0,
         totalProducts: 0
     })
-    const [recentOrders, setRecentOrders] = useState<any[]>([])
+    interface Order {
+        id: string
+        createdAt: string
+        totalAmount: number
+        deliveryFee: number
+        status: string
+        user?: { fullName?: string }
+        items?: Array<unknown>
+    }
+
+    interface Customer {
+        id: string
+        createdAt: string
+    }
+
+    const [recentOrders, setRecentOrders] = useState<Order[]>([])
     const [loading, setLoading] = useState(true)
 
-    useEffect(() => {
-        fetchDashboardData()
-    }, [])
-
-    const fetchDashboardData = async () => {
+    const fetchDashboardData = useCallback(async () => {
         try {
-            const [ordersRes, productsRes, customersRes] = await Promise.all([
-                fetch("/api/admin/orders", { cache: "no-store" }),
-                fetch("/api/admin/products", { cache: "no-store" }),
-                fetch("/api/admin/customers", { cache: "no-store" })
+            const [ordersData, productsData, customersData] = await Promise.all([
+                apiGet<{ orders: Order[] }>("/api/admin/orders"),
+                apiGet<{ products: unknown[] }>("/api/admin/products"),
+                apiGet<{ customers: Customer[] }>("/api/admin/customers")
             ])
 
             const today = new Date()
             today.setHours(0, 0, 0, 0)
 
-            if (ordersRes.ok) {
-                const ordersData = await ordersRes.json()
-                const orders = ordersData.orders || []
-                const todayOrders = orders.filter((o: any) => new Date(o.createdAt) >= today)
-                const todaySales = todayOrders.reduce((sum: number, o: any) => sum + o.totalAmount + o.deliveryFee, 0)
-                
-                setStats(prev => ({ ...prev, todayOrders: todayOrders.length, todaySales }))
-                setRecentOrders(orders.slice(0, 5))
-            }
+            const orders: Order[] = ordersData.orders || []
+            const todayOrders = orders.filter((o) => new Date(o.createdAt) >= today)
+            const todaySales = todayOrders.reduce((sum, o) => sum + o.totalAmount + o.deliveryFee, 0)
+            
+            setStats(prev => ({ ...prev, todayOrders: todayOrders.length, todaySales }))
+            setRecentOrders(orders.slice(0, 5))
 
-            if (productsRes.ok) {
-                const productsData = await productsRes.json()
-                const products = productsData.products || []
-                setStats(prev => ({ ...prev, totalProducts: products.length }))
-            }
+            const products = productsData.products || []
+            setStats(prev => ({ ...prev, totalProducts: products.length }))
 
-            if (customersRes.ok) {
-                const customersData = await customersRes.json()
-                const customers = customersData.customers || []
-                const newCustomers = customers.filter((c: any) => new Date(c.createdAt) >= today)
-                setStats(prev => ({ ...prev, newCustomers: newCustomers.length }))
-            }
+            const customers: Customer[] = customersData.customers || []
+            const newCustomers = customers.filter((c) => new Date(c.createdAt) >= today)
+            setStats(prev => ({ ...prev, newCustomers: newCustomers.length }))
         } catch (error) {
-            console.error("Failed to fetch dashboard data:", error)
+            const errorMessage = handleApiError(error)
+            logError("Failed to fetch dashboard data:", errorMessage)
         } finally {
             setLoading(false)
         }
-    }
+    }, [])
+
+    useEffect(() => {
+        fetchDashboardData()
+    }, [fetchDashboardData])
 
     const statsData = [
         {

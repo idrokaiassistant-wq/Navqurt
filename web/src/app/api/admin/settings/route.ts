@@ -1,53 +1,68 @@
-import { NextRequest, NextResponse } from "next/server"
+import { NextRequest } from "next/server"
 import { prisma } from "@/lib/prisma"
-import { assertAdmin, getAdminFromRequest } from "@/lib/api-auth"
+import { getAdminFromRequest } from "@/lib/api-auth"
 import bcrypt from "bcryptjs"
+import { withApiErrorHandler, successResponse, badRequestResponse } from "@/lib/api-response"
+import { validateRequired, validateEmail, validateStringLength } from "@/lib/validation"
 
 export async function GET(request: NextRequest) {
-    try {
+    return withApiErrorHandler(async () => {
         const admin = await getAdminFromRequest(request)
 
-        return NextResponse.json({
+        return successResponse({
             id: admin.id,
             email: admin.email,
             name: admin.name,
             createdAt: admin.createdAt.toISOString()
         })
-    } catch (error: unknown) {
-        if (error instanceof Error && error.message === "Unauthorized") {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-        }
-        return NextResponse.json(
-            { error: error instanceof Error ? error.message : "Failed to fetch profile" },
-            { status: 500 }
-        )
-    }
+    })
 }
 
 export async function PATCH(request: NextRequest) {
-    try {
+    return withApiErrorHandler(async () => {
         const admin = await getAdminFromRequest(request)
         const body = await request.json()
         const { name, email, currentPassword, newPassword } = body
 
         // If changing password, verify current password
         if (newPassword) {
-            if (!currentPassword) {
-                return NextResponse.json({ error: "Joriy parol majburiy" }, { status: 400 })
+            const currentPasswordValidation = validateRequired(currentPassword, "Joriy parol")
+            if (!currentPasswordValidation.valid) {
+                return badRequestResponse(currentPasswordValidation.error!)
             }
 
-            const isValid = await bcrypt.compare(currentPassword, admin.passwordHash)
+            const newPasswordValidation = validateStringLength(newPassword, 6, 100, "Yangi parol")
+            if (!newPasswordValidation.valid) {
+                return badRequestResponse(newPasswordValidation.error!)
+            }
+
+            const isValid = await bcrypt.compare(String(currentPassword), admin.passwordHash)
             if (!isValid) {
-                return NextResponse.json({ error: "Joriy parol noto'g'ri" }, { status: 400 })
+                return badRequestResponse("Joriy parol noto'g'ri")
             }
         }
 
+        // Build update data
         const updateData: { name?: string; email?: string; passwordHash?: string } = {}
 
-        if (name !== undefined) updateData.name = name
-        if (email !== undefined) updateData.email = email
+        if (name !== undefined) {
+            const trimmedName = String(name).trim()
+            if (trimmedName.length > 0) {
+                updateData.name = trimmedName
+            }
+        }
+
+        if (email !== undefined) {
+            const trimmedEmail = String(email).trim()
+            const emailValidation = validateEmail(trimmedEmail)
+            if (!emailValidation.valid) {
+                return badRequestResponse(emailValidation.error!)
+            }
+            updateData.email = trimmedEmail
+        }
+
         if (newPassword) {
-            updateData.passwordHash = await bcrypt.hash(newPassword, 10)
+            updateData.passwordHash = await bcrypt.hash(String(newPassword), 10)
         }
 
         const updated = await prisma.adminUser.update({
@@ -55,19 +70,11 @@ export async function PATCH(request: NextRequest) {
             data: updateData
         })
 
-        return NextResponse.json({
+        return successResponse({
             id: updated.id,
             email: updated.email,
             name: updated.name,
             message: newPassword ? "Parol yangilandi" : "Profil yangilandi"
         })
-    } catch (error: unknown) {
-        if (error instanceof Error && error.message === "Unauthorized") {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-        }
-        return NextResponse.json(
-            { error: error instanceof Error ? error.message : "Failed to update profile" },
-            { status: 500 }
-        )
-    }
+    })
 }

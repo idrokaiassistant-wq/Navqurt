@@ -1,52 +1,64 @@
-import { NextRequest, NextResponse } from "next/server"
+import { NextRequest } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { assertAdmin } from "@/lib/api-auth"
+import { withApiErrorHandler, successResponse, createdResponse, badRequestResponse } from "@/lib/api-response"
+import { validateRequired, parseFloatSafe, parseIntSafe, validateStringLength } from "@/lib/validation"
 
 export async function GET(request: NextRequest) {
-    try {
+    return withApiErrorHandler(async () => {
         await assertAdmin(request)
 
         const items = await prisma.stockItem.findMany({
             orderBy: { updatedAt: "desc" }
         })
 
-        return NextResponse.json(items)
-    } catch (error: unknown) {
-        if (error instanceof Error && error.message === "Unauthorized") {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-        }
-        return NextResponse.json(
-            { error: error instanceof Error ? error.message : "Failed to fetch stock items" },
-            { status: 500 }
-        )
-    }
+        return successResponse(items)
+    })
 }
 
 export async function POST(request: NextRequest) {
-    try {
+    return withApiErrorHandler(async () => {
         await assertAdmin(request)
         const body = await request.json()
         const { name, current, unit, minRequired, price } = body
 
+        // Validation
+        const nameValidation = validateRequired(name, "Nomi")
+        if (!nameValidation.valid) {
+            return badRequestResponse(nameValidation.error!)
+        }
+
+        const nameLengthValidation = validateStringLength(String(name).trim(), 1, 200, "Nomi")
+        if (!nameLengthValidation.valid) {
+            return badRequestResponse(nameLengthValidation.error!)
+        }
+
+        const currentValidation = parseFloatSafe(current, "Hozirgi miqdor")
+        if (!currentValidation.valid) {
+            return badRequestResponse(currentValidation.error!)
+        }
+
+        const minRequiredValidation = parseFloatSafe(minRequired, "Minimal talab")
+        if (!minRequiredValidation.valid) {
+            return badRequestResponse(minRequiredValidation.error!)
+        }
+
+        const priceValidation = parseIntSafe(price, "Narx")
+        if (!priceValidation.valid) {
+            return badRequestResponse(priceValidation.error!)
+        }
+
         const item = await prisma.stockItem.create({
             data: {
-                name,
-                current: parseFloat(current),
-                unit,
-                minRequired: parseFloat(minRequired),
-                price: parseFloat(price)
+                name: String(name).trim(),
+                current: currentValidation.value!,
+                unit: unit || "kg",
+                minRequired: minRequiredValidation.value!,
+                price: priceValidation.value!
             }
         })
 
-        return NextResponse.json(item, { status: 201 })
-    } catch (error: unknown) {
-        if (error instanceof Error && error.message === "Unauthorized") {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-        }
-        return NextResponse.json(
-            { error: error instanceof Error ? error.message : "Failed to create stock item" },
-            { status: 500 }
-        )
-    }
+        return createdResponse(item)
+    })
 }
 
