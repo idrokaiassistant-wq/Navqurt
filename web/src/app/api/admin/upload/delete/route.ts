@@ -3,7 +3,6 @@ import { assertAdmin } from "@/lib/api-auth"
 import { withApiErrorHandler, badRequestResponse, messageResponse } from "@/lib/api-response"
 import { validateRequired } from "@/lib/validation"
 import { deleteFile } from "@/lib/file-storage"
-import { prisma } from "@/lib/prisma"
 
 // Cloudinary delete response type
 interface CloudinaryDeleteResult {
@@ -45,27 +44,17 @@ export async function POST(request: NextRequest) {
 
                 return messageResponse("Rasm muvaffaqiyatli o'chirildi")
             } catch (error) {
-                // If Cloudinary fails, fallback to local storage
                 console.warn('Cloudinary delete failed, trying local storage:', error)
             }
         }
 
-        // Use PostgreSQL storage (primary method)
+        // Fallback to local file storage
         try {
-            // Try to delete from database first
-            await prisma.image.delete({
-                where: { id: String(public_id) }
-            })
+            await deleteFile(String(public_id))
             return messageResponse("Rasm muvaffaqiyatli o'chirildi")
-        } catch (error) {
-            // If not found in database, try local file storage (for backward compatibility)
-            try {
-                await deleteFile(String(public_id))
-                return messageResponse("Rasm muvaffaqiyatli o'chirildi")
-            } catch {
-                // File might not exist, that's okay
-                return messageResponse("Rasm allaqachon o'chirilgan yoki topilmadi")
-            }
+        } catch {
+            return messageResponse("Rasm allaqachon o'chirilgan yoki topilmadi")
         }
     })
 }
+

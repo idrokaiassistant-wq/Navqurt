@@ -1,6 +1,5 @@
 import { NextRequest } from "next/server"
 import { assertAdmin } from "@/lib/api-auth"
-import { prisma } from "@/lib/prisma"
 import { withApiErrorHandler, successResponse, badRequestResponse, internalServerErrorResponse } from "@/lib/api-response"
 import { uploadFile, validateFile } from "@/lib/file-storage"
 import type { CloudinaryUploadResponse } from "@/lib/types"
@@ -14,15 +13,6 @@ function isCloudinaryConfigured(): boolean {
     } catch {
         return false
     }
-}
-
-/**
- * Convert file to base64 string
- */
-async function fileToBase64(file: File): Promise<string> {
-    const bytes = await file.arrayBuffer()
-    const buffer = Buffer.from(bytes)
-    return buffer.toString('base64')
 }
 
 export async function POST(request: NextRequest) {
@@ -42,7 +32,7 @@ export async function POST(request: NextRequest) {
             return badRequestResponse(validation.error!)
         }
 
-        // Try Cloudinary first if configured, otherwise use local storage
+        // Try Cloudinary first if configured
         if (isCloudinaryConfigured()) {
             try {
                 const cloudinary = require("@/lib/cloudinary").default
@@ -83,43 +73,21 @@ export async function POST(request: NextRequest) {
                 })
             } catch (error) {
                 const errorMessage = error instanceof Error ? error.message : 'Noma\'lum xatolik'
-                // If Cloudinary fails, fallback to local storage
                 console.warn('Cloudinary upload failed, falling back to local storage:', errorMessage)
             }
         }
 
-        // Use PostgreSQL storage (primary method for security)
+        // Fallback to local file storage
         try {
-            // Convert file to base64
-            const base64Data = await fileToBase64(file)
-            
-            // Save to database
-            const image = await prisma.image.create({
-                data: {
-                    filename: file.name,
-                    mimeType: file.type,
-                    data: base64Data,
-                    size: file.size
-                }
-            })
-
-            // Return image ID and URL
+            const result = await uploadFile(file)
             return successResponse({
-                url: `/api/images/${image.id}`, // URL for serving image
-                public_id: image.id // Use image ID as public_id for deletion
+                url: result.url,
+                public_id: result.public_id
             })
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Noma\'lum xatolik'
-            // If database fails, try local file storage as fallback
-            try {
-                const result = await uploadFile(file)
-                return successResponse({
-                    url: result.url,
-                    public_id: result.public_id
-                })
-            } catch (fallbackError) {
-                return internalServerErrorResponse(`Rasm yuklash xatosi: ${errorMessage}`)
-            }
+            return internalServerErrorResponse(`Rasm yuklash xatosi: ${errorMessage}`)
         }
     })
 }
+

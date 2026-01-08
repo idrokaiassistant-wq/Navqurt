@@ -70,9 +70,8 @@ model Product {
   id            String            @id @default(uuid())
   name          String
   description   String?
-  image         String?           @default("") // Deprecated: kept for backward compatibility
-  imagePublicId String?           @default("") // Deprecated: kept for backward compatibility
-  imageId       String? // New: reference to Image model
+  image         String?           @default("") // Cloudinary or external URL
+  imagePublicId String?           @default("") // Cloudinary public_id for deletion
   price         Int
   weight        Int
   isActive      Boolean           @default(true)
@@ -80,7 +79,6 @@ model Product {
   variants      Variant[]
   orderItems    OrderItem[]
   categories    ProductCategory[]
-  imageData     Image?            @relation(fields: [imageId], references: [id])
 }
 
 model ProductCategory {
@@ -174,5 +172,5 @@ model Image {
   data      String    @db.Text // Base64 encoded image data
   size      Int // Size in bytes
   createdAt DateTime  @default(now())
-  products  Product[]
 }
+

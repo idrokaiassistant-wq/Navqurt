@@ -15,25 +15,17 @@ export async function GET(request: NextRequest) {
                     include: {
                         category: true
                     }
-                },
-                imageData: true
+                }
             },
             orderBy: { createdAt: "desc" }
         })
 
-        // Transform to include categoryIds and image URL for easier frontend use
+        // Transform to include categoryIds for easier frontend use
         const productsWithCategories = products.map(product => {
-            // Determine image URL: prefer imageId (database), then image (URL), then null
-            let imageUrl = product.image || null
-            if (product.imageId && product.imageData) {
-                imageUrl = `/api/images/${product.imageId}`
-            }
-
             return {
                 ...product,
                 categoryIds: product.categories.map(pc => pc.categoryId),
-                categoryNames: product.categories.map(pc => pc.category.name),
-                image: imageUrl // Override with computed image URL
+                categoryNames: product.categories.map(pc => pc.category.name)
             }
         })
 
@@ -45,7 +37,7 @@ export async function POST(request: NextRequest) {
     return withApiErrorHandler(async () => {
         await assertAdmin(request)
         const body = await request.json()
-        const { name, description, image, imagePublicId, imageId, price, weight, isActive, categoryIds } = body
+        const { name, description, image, imagePublicId, price, weight, isActive, categoryIds } = body
 
         // Validation
         const nameValidation = validateRequired(name, "Nomi")
@@ -75,9 +67,8 @@ export async function POST(request: NextRequest) {
             data: {
                 name: name.trim(),
                 description: description?.trim() || null,
-                image: image || null, // Backward compatibility
-                imagePublicId: imagePublicId || null, // Backward compatibility
-                imageId: imageId || null, // New: database image reference
+                image: image || null,
+                imagePublicId: imagePublicId || null,
                 price: priceValidation.value!,
                 weight: weightValidation.value!,
                 isActive: isActive !== false,
@@ -90,22 +81,15 @@ export async function POST(request: NextRequest) {
             include: {
                 categories: {
                     include: { category: true }
-                },
-                imageData: true
+                }
             }
         })
 
         // Transform response
-        let imageUrl = product.image || null
-        if (product.imageId && product.imageData) {
-            imageUrl = `/api/images/${product.imageId}`
-        }
-
         const productWithCategories = {
             ...product,
             categoryIds: product.categories.map(pc => pc.categoryId),
-            categoryNames: product.categories.map(pc => pc.category.name),
-            image: imageUrl // Override with computed image URL
+            categoryNames: product.categories.map(pc => pc.category.name)
         }
 
         return createdResponse(productWithCategories)
