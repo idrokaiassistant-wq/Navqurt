@@ -44,11 +44,14 @@ export default function WarehousePage() {
     const [newMovement, setNewMovement] = useState({ itemId: '', amount: '', price: '', note: '' })
 
     useEffect(() => {
-        fetchData()
+        fetchData(true) // Show loading on initial load
     }, [])
 
-    const fetchData = async () => {
+    const fetchData = async (showLoading = false) => {
         try {
+            if (showLoading) {
+                setLoading(true)
+            }
             const [items, movements] = await Promise.all([
                 apiGet<StockItem[]>("/api/admin/warehouse/items"),
                 apiGet<StockMovement[]>("/api/admin/warehouse/movements")
@@ -59,7 +62,9 @@ export default function WarehousePage() {
             const errorMessage = handleApiError(error)
             logError("Failed to fetch warehouse data:", errorMessage)
         } finally {
-            setLoading(false)
+            if (showLoading) {
+                setLoading(false)
+            }
         }
     }
 
@@ -97,21 +102,53 @@ export default function WarehousePage() {
     const addMovement = async (movement: { type: string; itemId: string; amount: number; price: number | null; note: string }) => {
         try {
             await apiPost<StockMovement>("/api/admin/warehouse/movements", movement)
+            // Fetch fresh data after successful movement creation
             await fetchData()
         } catch (error) {
             const errorMessage = handleApiError(error)
             logError("Failed to add movement:", errorMessage)
+            alert(errorMessage) // Show error to user
+            throw error // Re-throw to allow caller to handle
         }
     }
 
     const lowStockItems = stockItems.filter(item => item.current <= item.minRequired)
     const totalStock = stockItems.reduce((acc, item) => item.unit === 'kg' ? acc + item.current : acc, 0)
+    
+    // Calculate this month's statistics
     const now = new Date()
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
-    const thisMonthMovements = movements.filter(m => new Date(m.date) >= startOfMonth)
-    const thisMonthIn = thisMonthMovements.filter(m => m.type === 'IN').reduce((acc, m) => m.stockItem?.unit === 'kg' ? acc + m.amount : acc, 0)
-    const thisMonthOut = thisMonthMovements.filter(m => m.type === 'OUT').reduce((acc, m) => m.stockItem?.unit === 'kg' ? acc + m.amount : acc, 0)
-    const totalExpenses = thisMonthMovements.filter(m => m.type === 'IN' && m.price).reduce((acc, m) => acc + (m.price || 0), 0)
+    startOfMonth.setHours(0, 0, 0, 0) // Set to start of day
+    
+    const thisMonthMovements = movements.filter(m => {
+        const movementDate = new Date(m.date)
+        movementDate.setHours(0, 0, 0, 0) // Normalize to start of day
+        return movementDate >= startOfMonth
+    })
+    
+    const thisMonthIn = thisMonthMovements
+        .filter(m => m.type === 'IN')
+        .reduce((acc, m) => {
+            // Only count if unit is 'kg' and stockItem exists
+            if (m.stockItem?.unit === 'kg') {
+                return acc + m.amount
+            }
+            return acc
+        }, 0)
+    
+    const thisMonthOut = thisMonthMovements
+        .filter(m => m.type === 'OUT')
+        .reduce((acc, m) => {
+            // Only count if unit is 'kg' and stockItem exists
+            if (m.stockItem?.unit === 'kg') {
+                return acc + m.amount
+            }
+            return acc
+        }, 0)
+    
+    const totalExpenses = thisMonthMovements
+        .filter(m => m.type === 'IN' && m.price)
+        .reduce((acc, m) => acc + (m.price || 0), 0)
 
     const handleAddItem = () => {
         if (newItem.name) {
@@ -135,18 +172,24 @@ export default function WarehousePage() {
         }
     }
 
-    const handleAddMovement = () => {
+    const handleAddMovement = async () => {
         const amount = Number(newMovement.amount) || 0
         if (newMovement.itemId && amount > 0) {
-            addMovement({
-                type: movementType === 'in' ? 'IN' : 'OUT',
-                itemId: newMovement.itemId,
-                amount: amount,
-                price: movementType === 'in' ? (Number(newMovement.price) || 0) : null,
-                note: newMovement.note
-            })
-            setNewMovement({ itemId: '', amount: '', price: '', note: '' })
-            setIsAddMovementOpen(false)
+            try {
+                await addMovement({
+                    type: movementType === 'in' ? 'IN' : 'OUT',
+                    itemId: newMovement.itemId,
+                    amount: amount,
+                    price: movementType === 'in' ? (Number(newMovement.price) || 0) : null,
+                    note: newMovement.note
+                })
+                // Reset form and close modal only after successful API call
+                setNewMovement({ itemId: '', amount: '', price: '', note: '' })
+                setIsAddMovementOpen(false)
+            } catch (error) {
+                // Error is already handled in addMovement function
+                // Don't close modal if there's an error
+            }
         }
     }
 

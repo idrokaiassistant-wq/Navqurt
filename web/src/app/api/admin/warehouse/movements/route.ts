@@ -16,7 +16,13 @@ export async function GET(request: NextRequest) {
             orderBy: { date: "desc" }
         })
 
-        return successResponse(movements)
+        // Transform response: item -> stockItem for frontend compatibility
+        const transformedMovements = movements.map(movement => ({
+            ...movement,
+            stockItem: movement.item
+        }))
+
+        return successResponse(transformedMovements)
     })
 }
 
@@ -98,7 +104,13 @@ export async function POST(request: NextRequest) {
             }
         })
 
-        return createdResponse(movement)
+        // Transform response: item -> stockItem for frontend compatibility
+        const transformedMovement = {
+            ...movement,
+            stockItem: movement.item
+        }
+
+        return createdResponse(transformedMovement)
     })
 }
 
