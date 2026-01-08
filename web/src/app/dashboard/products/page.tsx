@@ -20,9 +20,8 @@ interface Product {
     id: string
     name: string
     description?: string
-    image?: string // URL (can be /api/images/[id] or external URL)
-    imagePublicId?: string // Deprecated: kept for backward compatibility
-    imageId?: string // New: database image ID
+    image?: string // Cloudinary URL or external URL
+    imagePublicId?: string // Cloudinary public_id for deletion
     price: number
     weight: number
     isActive: boolean
@@ -45,8 +44,7 @@ export default function ProductsPage() {
         weight: "",
         categoryIds: [] as string[],
         image: "",
-        imagePublicId: "", // Deprecated: kept for backward compatibility
-        imageId: "" // New: database image ID
+        imagePublicId: ""
     })
     const [uploading, setUploading] = useState(false)
     const fileInputRef = useRef<HTMLInputElement>(null)
@@ -90,17 +88,11 @@ export default function ProductsPage() {
                 "/api/admin/upload",
                 formDataUpload
             )
-            
-            // Extract imageId from URL if it's /api/images/[id] format
-            const imageId = data.url.startsWith('/api/images/') 
-                ? data.url.replace('/api/images/', '')
-                : null
-            
+
             setFormData(prev => ({
                 ...prev,
-                image: data.url, // Full URL (can be /api/images/[id] or external)
-                imagePublicId: data.public_id, // Keep for backward compatibility
-                imageId: imageId || data.public_id // Use imageId if available, otherwise public_id
+                image: data.url,
+                imagePublicId: data.public_id
             }))
         } catch (error) {
             const errorMessage = handleApiError(error)
@@ -112,18 +104,16 @@ export default function ProductsPage() {
     }
 
     const handleRemoveImage = async () => {
-        // Use imageId if available, otherwise imagePublicId (backward compatibility)
-        const publicId = formData.imageId || formData.imagePublicId
-        if (publicId) {
+        if (formData.imagePublicId) {
             try {
                 await apiPost<{ message: string }>("/api/admin/upload/delete", {
-                    public_id: publicId
+                    public_id: formData.imagePublicId
                 })
             } catch (error) {
                 logError("Failed to delete image:", handleApiError(error))
             }
         }
-        setFormData(prev => ({ ...prev, image: "", imagePublicId: "", imageId: "" }))
+        setFormData(prev => ({ ...prev, image: "", imagePublicId: "" }))
     }
 
     const handleAdd = async () => {
@@ -131,7 +121,7 @@ export default function ProductsPage() {
             await apiPost<{ data: Product }>("/api/admin/products", formData)
             await fetchProducts()
             setIsAddOpen(false)
-            setFormData({ name: "", description: "", price: "", weight: "", categoryIds: [], image: "", imagePublicId: "", imageId: "" })
+            setFormData({ name: "", description: "", price: "", weight: "", categoryIds: [], image: "", imagePublicId: "" })
         } catch (error) {
             const errorMessage = handleApiError(error)
             logError("Failed to add product:", errorMessage)
@@ -157,12 +147,11 @@ export default function ProductsPage() {
         const product = products.find(p => p.id === id)
         if (!confirm("Mahsulotni o'chirmoqchimisiz?")) return
 
-        // Delete image from database or storage if exists
-        const publicId = product?.imageId || product?.imagePublicId
-        if (publicId) {
+        // Delete image from Cloudinary if exists
+        if (product?.imagePublicId) {
             try {
                 await apiPost<{ message: string }>("/api/admin/upload/delete", {
-                    public_id: publicId
+                    public_id: product.imagePublicId
                 })
             } catch (error) {
                 logError("Failed to delete image:", handleApiError(error))
@@ -188,8 +177,7 @@ export default function ProductsPage() {
             weight: product.weight.toString(),
             categoryIds: product.categoryIds || [],
             image: product.image || "",
-            imagePublicId: product.imagePublicId || "",
-            imageId: product.imageId || ""
+            imagePublicId: product.imagePublicId || ""
         })
         setIsEditOpen(true)
     }
@@ -331,7 +319,7 @@ export default function ProductsPage() {
                     <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
                         <DialogTrigger asChild>
                             <button
-                                onClick={() => setFormData({ name: "", description: "", price: "", weight: "", categoryIds: [], image: "", imagePublicId: "", imageId: "" })}
+                                onClick={() => setFormData({ name: "", description: "", price: "", weight: "", categoryIds: [], image: "", imagePublicId: "" })}
                                 className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 text-sm rounded-xl flex items-center gap-2 transition-colors"
                             >
                                 <Plus className="h-4 w-4" />
@@ -357,12 +345,13 @@ export default function ProductsPage() {
                     <div key={product.id} className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
                         {/* Product Image */}
                         <div className="relative w-full h-40 bg-slate-800">
-                            {product.image ? (
+                            {product.image && product.image.trim() !== "" ? (
                                 <Image
                                     src={product.image}
                                     alt={product.name}
                                     fill
                                     className="object-cover"
+                                    unoptimized
                                 />
                             ) : (
                                 <div className="w-full h-full flex items-center justify-center">
