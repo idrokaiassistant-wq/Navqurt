@@ -69,9 +69,13 @@ async function apiRequest<T>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<T> {
-  const defaultHeaders: HeadersInit = {
-    'Content-Type': 'application/json',
-  }
+  // Don't set Content-Type for FormData - browser will set it with boundary
+  const isFormData = options.body instanceof FormData
+  const defaultHeaders: HeadersInit = isFormData
+    ? {}
+    : {
+        'Content-Type': 'application/json',
+      }
 
   const config: RequestInit = {
     ...options,
