@@ -66,3 +66,4 @@ Agar muammo bo'lsa:
 5. Prisma migration'larni tekshiring
 
 
+

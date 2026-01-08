@@ -219,7 +219,8 @@ export default function ProductsPage() {
         return <div className="text-white">Yuklanmoqda...</div>
     }
 
-    const ProductForm = () => (
+    // ProductForm JSX - inline render qilamiz fokus yo'qolmasligi uchun
+    const productFormJSX = (
         <div className="space-y-4">
             {/* Image Upload */}
             <div>
@@ -272,7 +273,8 @@ export default function ProductsPage() {
                 <Input
                     className="bg-slate-800 border-slate-700"
                     value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                    autoComplete="off"
                 />
             </div>
             <div>
@@ -280,7 +282,8 @@ export default function ProductsPage() {
                 <Input
                     className="bg-slate-800 border-slate-700"
                     value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                    autoComplete="off"
                 />
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -290,7 +293,8 @@ export default function ProductsPage() {
                         type="number"
                         className="bg-slate-800 border-slate-700"
                         value={formData.price}
-                        onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                        onChange={(e) => setFormData(prev => ({ ...prev, price: e.target.value }))}
+                        autoComplete="off"
                     />
                 </div>
                 <div>
@@ -299,7 +303,8 @@ export default function ProductsPage() {
                         type="number"
                         className="bg-slate-800 border-slate-700"
                         value={formData.weight}
-                        onChange={(e) => setFormData({ ...formData, weight: e.target.value })}
+                        onChange={(e) => setFormData(prev => ({ ...prev, weight: e.target.value }))}
+                        autoComplete="off"
                     />
                 </div>
             </div>
@@ -312,8 +317,8 @@ export default function ProductsPage() {
                             type="button"
                             onClick={() => toggleCategory(cat.id)}
                             className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${formData.categoryIds.includes(cat.id)
-                                    ? "bg-blue-500 text-white"
-                                    : "bg-slate-700 text-slate-300 hover:bg-slate-600"
+                                ? "bg-blue-500 text-white"
+                                : "bg-slate-700 text-slate-300 hover:bg-slate-600"
                                 }`}
                         >
                             {cat.name}
@@ -349,7 +354,7 @@ export default function ProductsPage() {
                             <DialogHeader>
                                 <DialogTitle>Yangi mahsulot</DialogTitle>
                             </DialogHeader>
-                            <ProductForm />
+                            {productFormJSX}
                             <Button onClick={handleAdd} className="w-full bg-blue-500 hover:bg-blue-600">
                                 Qo&apos;shish
                             </Button>
@@ -421,7 +426,7 @@ export default function ProductsPage() {
                     <DialogHeader>
                         <DialogTitle>Mahsulotni tahrirlash</DialogTitle>
                     </DialogHeader>
-                    <ProductForm />
+                    {productFormJSX}
                     <Button onClick={handleEdit} className="w-full bg-blue-500 hover:bg-blue-600">
                         Saqlash
                     </Button>
