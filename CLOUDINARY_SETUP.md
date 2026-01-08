@@ -1,8 +1,18 @@
-# Cloudinary Sozlash Qo'llanmasi
+# Rasm Yuklash Sozlash Qo'llanmasi
 
 ## Muammo
 
-Rasm yuklashda "Must supply api_key" xatosi chiqmoqda. Bu Cloudinary API key'lar sozlanmaganligini ko'rsatadi.
+Rasm yuklashda xatolik chiqmoqda. Bu quyidagi sabablarga ko'ra bo'lishi mumkin:
+- Cloudinary API key'lar sozlanmagan
+- Cloudinary sizning mamlakatingizda ishlamayapti (geo-restriction)
+
+## Yechim
+
+Dastur endi **ikkita yechimni** qo'llab-quvvatlaydi:
+1. **Cloudinary** (agar mavjud bo'lsa va ishlayotgan bo'lsa)
+2. **Local File Storage** (avtomatik fallback yoki asosiy yechim)
+
+Agar Cloudinary sozlanmagan bo'lsa yoki ishlamayotgan bo'lsa, dastur avtomatik ravishda local file storage'dan foydalanadi.
 
 ## Yechim
 

@@ -1,9 +1,19 @@
 import { NextRequest } from "next/server"
 import { assertAdmin } from "@/lib/api-auth"
-import cloudinary from "@/lib/cloudinary"
 import { withApiErrorHandler, badRequestResponse, messageResponse } from "@/lib/api-response"
 import { validateRequired } from "@/lib/validation"
-import type { CloudinaryDeleteResponse } from "@/lib/types"
+import { deleteFile } from "@/lib/file-storage"
+
+// Check if Cloudinary is configured
+function isCloudinaryConfigured(): boolean {
+    try {
+        const { getCloudinaryConfig } = require("@/lib/config")
+        getCloudinaryConfig()
+        return true
+    } catch {
+        return false
+    }
+}
 
 export async function POST(request: NextRequest) {
     return withApiErrorHandler(async () => {
@@ -16,12 +26,32 @@ export async function POST(request: NextRequest) {
             return badRequestResponse(publicIdValidation.error!)
         }
 
-        const result = await cloudinary.uploader.destroy(String(public_id)) as CloudinaryDeleteResponse
+        // Try Cloudinary first if configured
+        if (isCloudinaryConfigured()) {
+            try {
+                const cloudinary = require("@/lib/cloudinary").default
+                const { CloudinaryDeleteResponse } = require("@/lib/types")
 
-        if (result.result !== 'ok') {
-            return messageResponse("Rasm allaqachon o'chirilgan yoki topilmadi")
+                const result = await cloudinary.uploader.destroy(String(public_id)) as CloudinaryDeleteResponse
+
+                if (result.result !== 'ok') {
+                    return messageResponse("Rasm allaqachon o'chirilgan yoki topilmadi")
+                }
+
+                return messageResponse("Rasm muvaffaqiyatli o'chirildi")
+            } catch (error) {
+                // If Cloudinary fails, fallback to local storage
+                console.warn('Cloudinary delete failed, trying local storage:', error)
+            }
         }
 
-        return messageResponse("Rasm muvaffaqiyatli o'chirildi")
+        // Use local file storage (fallback or primary)
+        try {
+            await deleteFile(String(public_id))
+            return messageResponse("Rasm muvaffaqiyatli o'chirildi")
+        } catch (error) {
+            // File might not exist, that's okay
+            return messageResponse("Rasm allaqachon o'chirilgan yoki topilmadi")
+        }
     })
 }
