@@ -9,12 +9,28 @@ export async function GET(request: NextRequest) {
     return withApiErrorHandler(async () => {
         await assertAdmin(request)
 
-        const movements = await prisma.stockMovement.findMany({
-            include: {
-                item: true
-            },
-            orderBy: { date: "desc" }
-        })
+        // Pagination parameters
+        const searchParams = request.nextUrl.searchParams
+        const page = parseIntSafe(searchParams.get("page") || "1", "Page").value || 1
+        const limit = parseIntSafe(searchParams.get("limit") || "50", "Limit").value || 50
+        
+        // Validate and clamp pagination values
+        const pageNumber = Math.max(1, page)
+        const pageSize = Math.min(Math.max(1, limit), 200) // Max 200 items per page
+        const skip = (pageNumber - 1) * pageSize
+
+        // Fetch movements with pagination
+        const [movements, totalCount] = await Promise.all([
+            prisma.stockMovement.findMany({
+                include: {
+                    item: true
+                },
+                orderBy: { date: "desc" },
+                skip,
+                take: pageSize
+            }),
+            prisma.stockMovement.count()
+        ])
 
         // Transform response: item -> stockItem for frontend compatibility
         const transformedMovements = movements.map(movement => ({
@@ -22,7 +38,19 @@ export async function GET(request: NextRequest) {
             stockItem: movement.item
         }))
 
-        return successResponse(transformedMovements)
+        const totalPages = Math.ceil(totalCount / pageSize)
+
+        return successResponse({
+            movements: transformedMovements,
+            pagination: {
+                page: pageNumber,
+                limit: pageSize,
+                total: totalCount,
+                totalPages,
+                hasNextPage: pageNumber < totalPages,
+                hasPreviousPage: pageNumber > 1
+            }
+        })
     })
 }
 

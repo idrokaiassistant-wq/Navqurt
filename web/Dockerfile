@@ -60,9 +60,14 @@ EXPOSE 3000
 ENV PORT 3000
 ENV HOSTNAME "0.0.0.0"
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:3000/api/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
+# Health check - improved with better error handling
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:3000/api/health', (r) => {r.on('error', () => process.exit(1)); r.on('data', () => {}); r.on('end', () => process.exit(r.statusCode === 200 ? 0 : 1))}).on('error', () => process.exit(1)).setTimeout(8000, () => process.exit(1))"
+
+# Resource limits should be set in docker-compose.yml or Dokploy UI:
+# memory: 512m (or 1g)
+# cpus: '1.0'
+# memory_reservation: 256m
 
 CMD ["node", "server.js"]
 

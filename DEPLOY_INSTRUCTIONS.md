@@ -41,11 +41,22 @@ node -e "require('./prisma/seed.ts')"
 Dokploy'da quyidagi environment variable'larni sozlang:
 
 ```env
-DATABASE_URL=postgresql://user:password@host:5432/dbname
+# Production-hardened DATABASE_URL with connection pooling parameters
+# Format: postgresql://user:password@host:port/database?connection_limit=5&pool_timeout=20&connect_timeout=10
+# 
+# Connection pool parameters (CRITICAL for production performance):
+# - connection_limit: Maximum connections in pool (5 for serverless, 10-20 for dedicated)
+# - pool_timeout: Seconds to wait for connection from pool (20 recommended)
+# - connect_timeout: Seconds for initial connection (10 recommended)
+# - sslmode: Required for production databases (require/prefer)
+DATABASE_URL=postgresql://user:password@host:5432/dbname?connection_limit=5&pool_timeout=20&connect_timeout=10&sslmode=require
+
 NEXTAUTH_SECRET=your-random-secret-key-here-min-32-chars
 NEXTAUTH_URL=https://your-domain.com
 NODE_ENV=production
 ```
+
+**Important:** Production'da DATABASE_URL'ga connection pool parametrlarini qo'shish **majburiy**. Bu connection exhaustion muammosini oldini oladi.
 
 **NEXTAUTH_SECRET yaratish:**
 ```bash
@@ -112,9 +123,11 @@ Health check endpoint: `https://your-domain.com/api/health`
 - Prisma schema path: `web/prisma/schema.prisma`
 
 ### Database connection xatosi
-- `DATABASE_URL` to'g'ri ekanligini tekshiring
+- `DATABASE_URL` to'g'ri ekanligini tekshiring (connection_limit, pool_timeout parametrlar bilan)
 - Database service ishlamoqda ekanligini tekshiring
 - Network connectivity tekshiring
+- Connection pool exhaustion: `DATABASE_URL`da `connection_limit=5` parametrini tekshiring
+- Active connections tekshirish: PostgreSQL'da `SELECT count(*) FROM pg_stat_activity;`
 
 ### Port xatosi
 - Port 3000 ochiq ekanligini tekshiring

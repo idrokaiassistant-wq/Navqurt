@@ -77,16 +77,42 @@ export async function POST(request: NextRequest) {
             }
         }
 
-        // Fallback to local file storage
+        // Fallback to Base64 in Database (Recommended for ephemeral storage like Dokploy)
         try {
-            const result = await uploadFile(file)
+            const bytes = await file.arrayBuffer()
+            const buffer = Buffer.from(bytes)
+            const base64Data = buffer.toString('base64')
+
+            const { prisma } = require("@/lib/prisma")
+            const image = await prisma.image.create({
+                data: {
+                    filename: file.name,
+                    mimeType: file.type,
+                    data: base64Data,
+                    size: file.size,
+                },
+            })
+
             return successResponse({
-                url: result.url,
-                public_id: result.public_id
+                url: `/api/images/${image.id}`,
+                public_id: image.id
             })
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Noma\'lum xatolik'
-            return internalServerErrorResponse(`Rasm yuklash xatosi: ${errorMessage}`)
+            console.error('Database image upload failed:', errorMessage)
+
+            // Final fallback to local file (least reliable)
+            try {
+                const result = await uploadFile(file)
+                return successResponse({
+                    url: result.url,
+                    public_id: result.public_id
+                })
+            } catch (localError) {
+                const localErrorMsg = localError instanceof Error ? localError.message : 'Noma\'lum lokal xatolik'
+                console.error('Final local storage fallback failed:', localErrorMsg)
+                return internalServerErrorResponse(`Rasm yuklash xatosi: ${errorMessage}. Lokal saqlash ham ishlamadi: ${localErrorMsg}`)
+            }
         }
     })
 }

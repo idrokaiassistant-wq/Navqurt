@@ -13,6 +13,7 @@ export async function GET(request: NextRequest) {
             id: admin.id,
             email: admin.email,
             name: admin.name,
+            logoUrl: admin.logoUrl,
             createdAt: admin.createdAt.toISOString()
         })
     })
@@ -22,7 +23,7 @@ export async function PATCH(request: NextRequest) {
     return withApiErrorHandler(async () => {
         const admin = await getAdminFromRequest(request)
         const body = await request.json()
-        const { name, email, currentPassword, newPassword } = body
+        const { name, email, logoUrl, currentPassword, newPassword } = body
 
         // If changing password, verify current password
         if (newPassword) {
@@ -52,6 +53,10 @@ export async function PATCH(request: NextRequest) {
             }
         }
 
+        if (logoUrl !== undefined) {
+            updateData.logoUrl = logoUrl
+        }
+
         if (email !== undefined) {
             const trimmedEmail = String(email).trim()
             const emailValidation = validateEmail(trimmedEmail)
@@ -74,6 +79,7 @@ export async function PATCH(request: NextRequest) {
             id: updated.id,
             email: updated.email,
             name: updated.name,
+            logoUrl: updated.logoUrl,
             message: newPassword ? "Parol yangilandi" : "Profil yangilandi"
         })
     })

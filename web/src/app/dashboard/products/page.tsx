@@ -97,7 +97,7 @@ export default function ProductsPage() {
         } catch (error) {
             const errorMessage = handleApiError(error)
             logError("Failed to upload image:", errorMessage)
-            alert(errorMessage)
+            alert(`Rasm yuklashda xatolik: ${errorMessage}`)
         } finally {
             setUploading(false)
         }
@@ -236,7 +236,7 @@ export default function ProductsPage() {
                                 <>
                                     <Upload className="h-8 w-8 text-slate-400 mb-2" />
                                     <span className="text-slate-400 text-sm">Rasm yuklash uchun bosing</span>
-                                    <span className="text-slate-500 text-xs mt-1">PostgreSQL Database (JPEG, PNG, WebP)</span>
+                                    <span className="text-slate-500 text-xs mt-1">Ma&apos;lumotlar bazasida (DB) doimiy saqlanadi</span>
                                 </>
                             )}
                         </label>

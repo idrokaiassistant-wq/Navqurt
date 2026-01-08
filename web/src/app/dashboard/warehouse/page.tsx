@@ -52,12 +52,12 @@ export default function WarehousePage() {
             if (showLoading) {
                 setLoading(true)
             }
-            const [items, movements] = await Promise.all([
-                apiGet<StockItem[]>("/api/admin/warehouse/items"),
-                apiGet<StockMovement[]>("/api/admin/warehouse/movements")
+            const [itemsData, movementsData] = await Promise.all([
+                apiGet<{ items: StockItem[] }>("/api/admin/warehouse/items"),
+                apiGet<{ movements: StockMovement[] }>("/api/admin/warehouse/movements")
             ])
-            setStockItems(Array.isArray(items) ? items : [])
-            setMovements(Array.isArray(movements) ? movements : [])
+            setStockItems(Array.isArray(itemsData.items) ? itemsData.items : [])
+            setMovements(Array.isArray(movementsData.movements) ? movementsData.movements : [])
         } catch (error) {
             const errorMessage = handleApiError(error)
             logError("Failed to fetch warehouse data:", errorMessage)
@@ -114,18 +114,18 @@ export default function WarehousePage() {
 
     const lowStockItems = stockItems.filter(item => item.current <= item.minRequired)
     const totalStock = stockItems.reduce((acc, item) => item.unit === 'kg' ? acc + item.current : acc, 0)
-    
+
     // Calculate this month's statistics
     const now = new Date()
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
     startOfMonth.setHours(0, 0, 0, 0) // Set to start of day
-    
+
     const thisMonthMovements = movements.filter(m => {
         const movementDate = new Date(m.date)
         movementDate.setHours(0, 0, 0, 0) // Normalize to start of day
         return movementDate >= startOfMonth
     })
-    
+
     const thisMonthIn = thisMonthMovements
         .filter(m => m.type === 'IN')
         .reduce((acc, m) => {
@@ -135,7 +135,7 @@ export default function WarehousePage() {
             }
             return acc
         }, 0)
-    
+
     const thisMonthOut = thisMonthMovements
         .filter(m => m.type === 'OUT')
         .reduce((acc, m) => {
@@ -145,7 +145,7 @@ export default function WarehousePage() {
             }
             return acc
         }, 0)
-    
+
     const totalExpenses = thisMonthMovements
         .filter(m => m.type === 'IN' && m.price)
         .reduce((acc, m) => acc + (m.price || 0), 0)

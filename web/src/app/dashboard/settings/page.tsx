@@ -51,7 +51,14 @@ export default function SettingsPage() {
                 formData
             )
 
+            // 1. Update store for immediate UI feedback
             setLogoUrl(data.url)
+
+            // 2. Persist to database so it stays after refresh/re-deploy
+            await apiPatch("/api/admin/settings", {
+                logoUrl: data.url
+            })
+
             setSuccessMessage("Logo muvaffaqiyatli yangilandi")
         } catch (error) {
             const errorMessage = handleApiError(error)
@@ -63,6 +70,7 @@ export default function SettingsPage() {
 
     useEffect(() => {
         loadProfile()
+        // ... rest of useEffect
         // Load notifications from localStorage
         try {
             const savedNotifications = localStorage.getItem(STORAGE_KEYS.NOTIFICATIONS)
@@ -76,8 +84,11 @@ export default function SettingsPage() {
 
     const loadProfile = async () => {
         try {
-            const data = await apiGet<AdminProfile>("/api/admin/settings")
+            const data = await apiGet<AdminProfile & { logoUrl: string }>("/api/admin/settings")
             setProfileForm({ name: data.name || "", email: data.email })
+            if (data.logoUrl) {
+                setLogoUrl(data.logoUrl)
+            }
         } catch (error) {
             const errorMessage = handleApiError(error)
             setErrorMessage(errorMessage)

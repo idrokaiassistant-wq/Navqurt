@@ -8,17 +8,33 @@ export async function GET(request: NextRequest) {
     return withApiErrorHandler(async () => {
         await assertAdmin(request)
 
-        const products = await prisma.product.findMany({
-            include: {
-                variants: true,
-                categories: {
-                    include: {
-                        category: true
+        // Pagination parameters
+        const searchParams = request.nextUrl.searchParams
+        const page = parseIntSafe(searchParams.get("page") || "1", "Page").value || 1
+        const limit = parseIntSafe(searchParams.get("limit") || "50", "Limit").value || 50
+
+        // Validate and clamp pagination values
+        const pageNumber = Math.max(1, page)
+        const pageSize = Math.min(Math.max(1, limit), 200) // Max 200 items per page
+        const skip = (pageNumber - 1) * pageSize
+
+        // Fetch products with pagination
+        const [products, totalCount] = await Promise.all([
+            prisma.product.findMany({
+                include: {
+                    variants: true,
+                    categories: {
+                        include: {
+                            category: true
+                        }
                     }
-                }
-            },
-            orderBy: { createdAt: "desc" }
-        })
+                },
+                orderBy: { createdAt: "desc" },
+                skip,
+                take: pageSize
+            }),
+            prisma.product.count()
+        ])
 
         // Transform to include categoryIds for easier frontend use
         const productsWithCategories = products.map(product => {
@@ -29,7 +45,19 @@ export async function GET(request: NextRequest) {
             }
         })
 
-        return successResponse({ products: productsWithCategories })
+        const totalPages = Math.ceil(totalCount / pageSize)
+
+        return successResponse({
+            products: productsWithCategories,
+            pagination: {
+                page: pageNumber,
+                limit: pageSize,
+                total: totalCount,
+                totalPages,
+                hasNextPage: pageNumber < totalPages,
+                hasPreviousPage: pageNumber > 1
+            }
+        })
     })
 }
 

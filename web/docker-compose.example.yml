@@ -1,0 +1,41 @@
+# Docker Compose example for local testing with resource limits
+# This file demonstrates recommended resource limits for production
+# In Dokploy, set these limits in the UI under Project → Settings → Advanced
+
+version: '3.8'
+
+services:
+  navqurt:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=${DATABASE_URL}
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+      - NEXTAUTH_URL=${NEXTAUTH_URL}
+    # Resource limits (CRITICAL for production stability)
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'        # Maximum 1 CPU core
+          memory: 1G         # Maximum 1GB RAM
+        reservations:
+          cpus: '0.5'        # Guaranteed 0.5 CPU core
+          memory: 512M       # Guaranteed 512MB RAM
+    # Health check
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/api/health', (r) => {r.on('error', () => process.exit(1)); r.on('data', () => {}); r.on('end', () => process.exit(r.statusCode === 200 ? 0 : 1))}).on('error', () => process.exit(1)).setTimeout(8000, () => process.exit(1))"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    restart: unless-stopped
+    # Logging configuration
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"

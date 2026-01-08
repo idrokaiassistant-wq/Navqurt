@@ -19,9 +19,9 @@ export default function DashboardLayout({
     }, [theme])
 
     return (
-        <div className={`min-h-screen ${theme === 'dark' ? 'bg-slate-950' : 'bg-gray-100'}`}>
+        <div className={`min-h-screen w-full overflow-x-hidden ${theme === 'dark' ? 'bg-slate-950' : 'bg-gray-100'}`}>
             <Sidebar />
-            <main className="lg:pl-72 pt-16 lg:pt-0">
+            <main className="lg:pl-72 pt-16 lg:pt-0 w-full max-w-full overflow-x-hidden">
                 {/* Desktop Header */}
                 <div className={`hidden lg:flex items-center justify-end gap-3 p-4 border-b ${theme === 'dark' ? 'border-slate-800' : 'border-gray-200'}`}>
                     <button
@@ -41,7 +41,7 @@ export default function DashboardLayout({
                         </span>
                     </button>
                 </div>
-                <div className="p-4 lg:p-6">
+                <div className="p-4 lg:p-6 w-full max-w-full overflow-x-hidden">
                     {children}
                 </div>
             </main>

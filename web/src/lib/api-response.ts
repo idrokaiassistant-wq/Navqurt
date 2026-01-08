@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import type { ApiErrorResponse as ApiErrorType } from './types'
+import { logApiRequest, logError } from './logger'
 
 /**
  * Unified Error Handling and Response Builder
@@ -115,15 +116,33 @@ export function internalServerErrorResponse(message: string): NextResponse<ApiEr
 }
 
 /**
- * API route wrapper for consistent error handling
+ * API route wrapper for consistent error handling with performance monitoring
  */
 export async function withApiErrorHandler<T>(
-  handler: () => Promise<NextResponse<T | ApiErrorType>>
+  handler: () => Promise<NextResponse<T | ApiErrorType>>,
+  context?: { method?: string; path?: string }
 ): Promise<NextResponse<T | ApiErrorType>> {
+  const startTime = Date.now()
+  const method = context?.method || 'UNKNOWN'
+  const path = context?.path || 'UNKNOWN'
+  
   try {
-    return await handler()
+    const response = await handler()
+    const duration = Date.now() - startTime
+    
+    // Log API request with timing
+    logApiRequest(method, path, response.status, duration)
+    
+    return response
   } catch (error) {
-    return handleApiError(error)
+    const duration = Date.now() - startTime
+    const response = handleApiError(error)
+    
+    // Log error with timing
+    logError('[API ERROR]', `${method} ${path}`, error, `Duration: ${duration}ms`)
+    logApiRequest(method, path, response.status, duration)
+    
+    return response
   }
 }
 
