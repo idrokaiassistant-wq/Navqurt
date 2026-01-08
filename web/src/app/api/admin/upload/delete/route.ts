@@ -3,6 +3,12 @@ import { assertAdmin } from "@/lib/api-auth"
 import { withApiErrorHandler, badRequestResponse, messageResponse } from "@/lib/api-response"
 import { validateRequired } from "@/lib/validation"
 import { deleteFile } from "@/lib/file-storage"
+import { prisma } from "@/lib/prisma"
+
+// Cloudinary delete response type
+interface CloudinaryDeleteResult {
+    result: 'ok' | 'not found'
+}
 
 // Check if Cloudinary is configured
 function isCloudinaryConfigured(): boolean {
@@ -30,9 +36,8 @@ export async function POST(request: NextRequest) {
         if (isCloudinaryConfigured()) {
             try {
                 const cloudinary = require("@/lib/cloudinary").default
-                const { CloudinaryDeleteResponse } = require("@/lib/types")
 
-                const result = await cloudinary.uploader.destroy(String(public_id)) as CloudinaryDeleteResponse
+                const result = await cloudinary.uploader.destroy(String(public_id)) as CloudinaryDeleteResult
 
                 if (result.result !== 'ok') {
                     return messageResponse("Rasm allaqachon o'chirilgan yoki topilmadi")
