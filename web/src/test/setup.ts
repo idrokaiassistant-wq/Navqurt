@@ -1,4 +1,5 @@
 import '@testing-library/jest-dom/vitest'
+import { beforeAll, afterAll } from 'vitest'
 
 // LocalStorage mock - Zustand persist uchun kerak
 const localStorageMock = {

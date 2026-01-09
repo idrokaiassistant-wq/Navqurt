@@ -9,6 +9,7 @@ export async function assertAdmin(request: NextRequest) {
     })
 
     if (!token || token.role !== "admin") {
+        console.error(`[AUTH ERROR] ${!token ? 'No token found' : 'Not an admin'}`)
         throw new Error("Unauthorized")
     }
 

@@ -76,10 +76,12 @@ export default function OrdersPage() {
     const [detailsLoading, setDetailsLoading] = useState(false)
     const [statusFilter, setStatusFilter] = useState<string>("")
     const [searchQuery, setSearchQuery] = useState("")
+    const [error, setError] = useState<string>("")
 
     const fetchOrders = useCallback(async (page: number = 1) => {
         try {
             setLoading(true)
+            setError("")
             const params = new URLSearchParams({
                 page: page.toString(),
                 limit: "50"
@@ -92,9 +94,12 @@ export default function OrdersPage() {
             if (data.pagination) {
                 setPagination(data.pagination)
             }
-        } catch (error) {
-            const errorMessage = handleApiError(error)
+        } catch (err) {
+            const errorMessage = handleApiError(err)
             logError("Failed to fetch orders:", errorMessage)
+            setError(errorMessage)
+        } finally {
+            setLoading(false)
         }
     }, [statusFilter])
 
@@ -150,6 +155,12 @@ export default function OrdersPage() {
                     <p className="text-muted-foreground">Barcha buyurtmalarni boshqaring</p>
                 </div>
             </div>
+
+            {error && (
+                <div className="bg-rose-500/10 border border-rose-500/20 text-rose-500 px-4 py-3 rounded-xl text-sm">
+                    {error}
+                </div>
+            )}
 
             <div className="flex items-center gap-3 flex-wrap">
                 <div className="relative flex-1 min-w-[200px]">

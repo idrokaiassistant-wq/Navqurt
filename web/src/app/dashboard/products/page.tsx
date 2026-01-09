@@ -77,6 +77,8 @@ export default function ProductsPage() {
             const errorMessage = handleApiError(error)
             logError("Failed to fetch products:", errorMessage)
             alert(errorMessage)
+        } finally {
+            setLoading(false)
         }
     }, [])
 
