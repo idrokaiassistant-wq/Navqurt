@@ -34,8 +34,18 @@ export async function GET(request: NextRequest) {
             take: 5,
         }) || []
 
+        interface Notification {
+            id: string
+            title: string
+            message: string
+            type: 'order' | 'stock'
+            read: boolean
+            createdAt: string
+            link: string
+        }
+
         // Build notifications array
-        const notifications: any[] = []
+        const notifications: Notification[] = []
 
         // Order notifications (last 24 hours)
         const oneDayAgo = new Date()
