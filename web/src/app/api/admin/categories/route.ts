@@ -18,9 +18,16 @@ export async function GET(request: NextRequest) {
         const pageSize = Math.min(Math.max(1, limit), 200) // Max 200 items per page
         const skip = (pageNumber - 1) * pageSize
 
-        // Fetch categories with pagination
+        // Fetch categories with pagination and product counts
         const [categories, totalCount] = await Promise.all([
             prisma.category.findMany({
+                include: {
+                    _count: {
+                        select: {
+                            products: true
+                        }
+                    }
+                },
                 orderBy: { createdAt: "desc" },
                 skip,
                 take: pageSize

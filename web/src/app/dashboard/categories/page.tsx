@@ -13,12 +13,23 @@ type ApiCategory = {
     name: string
     color: string | null
     createdAt: string
+    _count?: {
+        products: number
+    }
 }
 
 export default function CategoriesPage() {
     const [categories, setCategories] = useState<ApiCategory[]>([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState("")
+    const [pagination, setPagination] = useState({
+        page: 1,
+        limit: 50,
+        total: 0,
+        totalPages: 1,
+        hasNextPage: false,
+        hasPreviousPage: false
+    })
 
     const [query, setQuery] = useState("")
     const [isAddOpen, setIsAddOpen] = useState(false)
@@ -29,12 +40,15 @@ export default function CategoriesPage() {
     const [editCategory, setEditCategory] = useState<ApiCategory | null>(null)
     const [editForm, setEditForm] = useState({ name: "", color: "" })
 
-    const load = async () => {
+    const load = async (page: number = 1) => {
         setLoading(true)
         setError("")
         try {
-            const data = await apiGet<{ categories: ApiCategory[] }>("/api/admin/categories")
+            const data = await apiGet<{ categories: ApiCategory[], pagination: typeof pagination }>(`/api/admin/categories?page=${page}&limit=50`)
             setCategories(data.categories ?? [])
+            if (data.pagination) {
+                setPagination(data.pagination)
+            }
         } catch (e) {
             const errorMessage = handleApiError(e)
             setError(errorMessage)
@@ -62,7 +76,7 @@ export default function CategoriesPage() {
             await apiPost<{ category: ApiCategory }>("/api/admin/categories", payload)
             setNewCategory({ name: "", color: "" })
             setIsAddOpen(false)
-            await load()
+            await load(pagination.page)
         } catch (e) {
             const errorMessage = handleApiError(e)
             setError(errorMessage)
@@ -86,7 +100,7 @@ export default function CategoriesPage() {
             setEditCategory(null)
             setEditForm({ name: "", color: "" })
             setIsEditOpen(false)
-            await load()
+            await load(pagination.page)
         } catch (e) {
             const errorMessage = handleApiError(e)
             setError(errorMessage)
@@ -175,7 +189,9 @@ export default function CategoriesPage() {
                                 </div>
                                 <div>
                                     <h3 className="text-lg font-semibold text-white">{cat.name}</h3>
-                                    <p className="text-slate-400 text-sm">ID: {cat.id.slice(0, 8)}...</p>
+                                    <p className="text-slate-400 text-sm">
+                                        {cat._count?.products ?? 0} ta mahsulot
+                                    </p>
                                 </div>
                             </div>
                             <div className="flex items-center gap-1">
@@ -191,7 +207,7 @@ export default function CategoriesPage() {
                                         if (!confirm(`"${cat.name}" kategoriyasini o'chirmoqchimisiz?`)) return
                                         try {
                                             await apiDelete<{ message: string }>(`/api/admin/categories/${cat.id}`)
-                                            await load()
+                                            await load(pagination.page)
                                         } catch (e) {
                                             const errorMessage = handleApiError(e)
                                             setError(errorMessage)
@@ -209,6 +225,37 @@ export default function CategoriesPage() {
                     </div>
                 ))}
             </div>
+
+            {/* Pagination */}
+            {!loading && !error && pagination.totalPages > 1 && (
+                <div className="flex items-center justify-between px-4 py-3 bg-slate-900 border border-slate-800 rounded-2xl">
+                    <div className="text-sm text-slate-400">
+                        {pagination.total} ta kategoriyadan {(pagination.page - 1) * pagination.limit + 1}-
+                        {Math.min(pagination.page * pagination.limit, pagination.total)} tasi ko'rsatilmoqda
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <Button
+                            variant="outline"
+                            onClick={() => load(pagination.page - 1)}
+                            disabled={!pagination.hasPreviousPage}
+                            className="bg-slate-800 border-slate-700 text-white hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            Oldingi
+                        </Button>
+                        <span className="text-sm text-slate-400 px-3">
+                            {pagination.page} / {pagination.totalPages}
+                        </span>
+                        <Button
+                            variant="outline"
+                            onClick={() => load(pagination.page + 1)}
+                            disabled={!pagination.hasNextPage}
+                            className="bg-slate-800 border-slate-700 text-white hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            Keyingi
+                        </Button>
+                    </div>
+                </div>
+            )}
 
             {/* Edit Modal */}
             <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>

@@ -1,19 +1,26 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import { Plus, Edit2, Trash2, Upload, X, Image as ImageIcon } from "lucide-react"
+import { Plus, Edit2, Trash2, Upload, X, Image as ImageIcon, PlusCircle, Check } from "lucide-react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import Image from "next/image"
 import { apiGet, apiPost, apiPatch, apiDelete, apiPostFormData, handleApiError } from "@/lib/api-client"
+import { formatPrice } from "@/lib/date-utils"
 import { logError } from "@/lib/logger"
 
 interface Category {
     id: string
     name: string
     color: string | null
+}
+
+interface Variant {
+    id: string
+    type: string
+    priceDelta: number
 }
 
 interface Product {
@@ -28,12 +35,21 @@ interface Product {
     createdAt: string
     categoryIds?: string[]
     categoryNames?: string[]
+    variants?: Variant[]
 }
 
 export default function ProductsPage() {
     const [products, setProducts] = useState<Product[]>([])
     const [categories, setCategories] = useState<Category[]>([])
     const [loading, setLoading] = useState(true)
+    const [pagination, setPagination] = useState({
+        page: 1,
+        limit: 50,
+        total: 0,
+        totalPages: 1,
+        hasNextPage: false,
+        hasPreviousPage: false
+    })
     const [isAddOpen, setIsAddOpen] = useState(false)
     const [isEditOpen, setIsEditOpen] = useState(false)
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
@@ -50,15 +66,18 @@ export default function ProductsPage() {
     const fileInputRef = useRef<HTMLInputElement>(null)
 
     useEffect(() => {
-        fetchProducts()
+        fetchProducts(1)
         fetchCategories()
     }, [])
 
-    const fetchProducts = async () => {
+    const fetchProducts = async (page: number = 1) => {
         try {
             setLoading(true)
-            const data = await apiGet<{ products: Product[] }>("/api/admin/products")
+            const data = await apiGet<{ products: Product[], pagination: typeof pagination }>(`/api/admin/products?page=${page}&limit=50`)
             setProducts(data.products ?? [])
+            if (data.pagination) {
+                setPagination(data.pagination)
+            }
         } catch (error) {
             const errorMessage = handleApiError(error)
             logError("Failed to fetch products:", errorMessage)
@@ -119,7 +138,7 @@ export default function ProductsPage() {
     const handleAdd = async () => {
         try {
             await apiPost<{ data: Product }>("/api/admin/products", formData)
-            await fetchProducts()
+            await fetchProducts(pagination.page)
             setIsAddOpen(false)
             setFormData({ name: "", description: "", price: "", weight: "", categoryIds: [], image: "", imagePublicId: "" })
         } catch (error) {
@@ -133,7 +152,7 @@ export default function ProductsPage() {
         if (!selectedProduct) return
         try {
             await apiPatch<{ data: Product }>(`/api/admin/products/${selectedProduct.id}`, formData)
-            await fetchProducts()
+            await fetchProducts(pagination.page)
             setIsEditOpen(false)
             setSelectedProduct(null)
         } catch (error) {
@@ -160,7 +179,7 @@ export default function ProductsPage() {
 
         try {
             await apiDelete<{ message: string }>(`/api/admin/products/${id}`)
-            await fetchProducts()
+            await fetchProducts(pagination.page)
         } catch (error) {
             const errorMessage = handleApiError(error)
             logError("Failed to delete product:", errorMessage)
@@ -168,7 +187,30 @@ export default function ProductsPage() {
         }
     }
 
-    const openEditModal = (product: Product) => {
+    const [productVariants, setProductVariants] = useState<Variant[]>([])
+    const [newVariant, setNewVariant] = useState({ type: "", priceDelta: "" })
+    const [editingVariant, setEditingVariant] = useState<Variant | null>(null)
+    const [editVariantPriceDelta, setEditVariantPriceDelta] = useState("")
+
+    const TASTE_TYPES = ["ODDIY", "ACHCHIQ", "QALAMPIRLI", "RAYHONLI", "SHOKOLADLI"]
+    const TASTE_TYPE_LABELS: Record<string, string> = {
+        ODDIY: "Oddiy",
+        ACHCHIQ: "Achchiq",
+        QALAMPIRLI: "Qalampirli",
+        RAYHONLI: "Rayhonli",
+        SHOKOLADLI: "Shokoladli"
+    }
+
+    const fetchVariants = async (productId: string) => {
+        try {
+            const data = await apiGet<{ variants: Variant[] }>(`/api/admin/products/${productId}/variants`)
+            setProductVariants(data.variants ?? [])
+        } catch (error) {
+            logError("Failed to fetch variants:", error)
+        }
+    }
+
+    const openEditModal = async (product: Product) => {
         setSelectedProduct(product)
         setFormData({
             name: product.name,
@@ -179,7 +221,57 @@ export default function ProductsPage() {
             image: product.image || "",
             imagePublicId: product.imagePublicId || ""
         })
+        setProductVariants(product.variants || [])
+        setNewVariant({ type: "", priceDelta: "" })
+        setEditingVariant(null)
         setIsEditOpen(true)
+    }
+
+    const handleAddVariant = async () => {
+        if (!selectedProduct || !newVariant.type) return
+
+        try {
+            const payload = {
+                type: newVariant.type,
+                priceDelta: Number(newVariant.priceDelta) || 0
+            }
+            await apiPost<{ variant: Variant }>(`/api/admin/products/${selectedProduct.id}/variants`, payload)
+            await fetchVariants(selectedProduct.id)
+            setNewVariant({ type: "", priceDelta: "" })
+        } catch (error) {
+            const errorMessage = handleApiError(error)
+            alert(errorMessage)
+        }
+    }
+
+    const handleUpdateVariant = async (variantId: string) => {
+        if (!selectedProduct) return
+
+        try {
+            const payload = {
+                priceDelta: Number(editVariantPriceDelta) || 0
+            }
+            await apiPatch<{ variant: Variant }>(`/api/admin/variants/${variantId}`, payload)
+            await fetchVariants(selectedProduct.id)
+            setEditingVariant(null)
+            setEditVariantPriceDelta("")
+        } catch (error) {
+            const errorMessage = handleApiError(error)
+            alert(errorMessage)
+        }
+    }
+
+    const handleDeleteVariant = async (variantId: string) => {
+        if (!confirm("Bu variantni o'chirmoqchimisiz?")) return
+        if (!selectedProduct) return
+
+        try {
+            await apiDelete<{ message: string }>(`/api/admin/variants/${variantId}`)
+            await fetchVariants(selectedProduct.id)
+        } catch (error) {
+            const errorMessage = handleApiError(error)
+            alert(errorMessage)
+        }
     }
 
     const toggleCategory = (categoryId: string) => {
@@ -305,6 +397,105 @@ export default function ProductsPage() {
                     )}
                 </div>
             </div>
+
+            {/* Variants Section */}
+            <div className="border-t border-slate-800 pt-4">
+                <Label>Variantlar</Label>
+                <div className="mt-2 space-y-3">
+                    {/* Existing Variants */}
+                    {productVariants.map((variant) => (
+                        <div key={variant.id} className="flex items-center justify-between p-3 bg-slate-800 rounded-lg">
+                            <div className="flex items-center gap-3">
+                                <span className="text-white font-medium">{TASTE_TYPE_LABELS[variant.type] || variant.type}</span>
+                                <span className={`text-sm ${variant.priceDelta >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                                    {variant.priceDelta >= 0 ? '+' : ''}{formatPrice(variant.priceDelta)}
+                                </span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                {editingVariant?.id === variant.id ? (
+                                    <>
+                                        <Input
+                                            type="number"
+                                            className="w-32 bg-slate-700 border-slate-600 text-white text-sm"
+                                            value={editVariantPriceDelta}
+                                            onChange={(e) => setEditVariantPriceDelta(e.target.value)}
+                                            placeholder="Narx farqi"
+                                        />
+                                        <button
+                                            onClick={() => handleUpdateVariant(variant.id)}
+                                            className="p-1.5 bg-blue-500 text-white rounded hover:bg-blue-600"
+                                        >
+                                            <Check className="h-4 w-4" />
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                setEditingVariant(null)
+                                                setEditVariantPriceDelta("")
+                                            }}
+                                            className="p-1.5 bg-slate-600 text-white rounded hover:bg-slate-700"
+                                        >
+                                            <X className="h-4 w-4" />
+                                        </button>
+                                    </>
+                                ) : (
+                                    <>
+                                        <button
+                                            onClick={() => {
+                                                setEditingVariant(variant)
+                                                setEditVariantPriceDelta(variant.priceDelta.toString())
+                                            }}
+                                            className="p-1.5 text-blue-400 hover:bg-blue-500/10 rounded"
+                                            title="Tahrirlash"
+                                        >
+                                            <Edit2 className="h-4 w-4" />
+                                        </button>
+                                        <button
+                                            onClick={() => handleDeleteVariant(variant.id)}
+                                            className="p-1.5 text-rose-400 hover:bg-rose-500/10 rounded"
+                                            title="O'chirish"
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                        </button>
+                                    </>
+                                )}
+                            </div>
+                        </div>
+                    ))}
+
+                    {/* Add New Variant */}
+                    <div className="flex items-center gap-2 p-3 bg-slate-800 rounded-lg border border-slate-700 border-dashed">
+                        <select
+                            className="flex-1 bg-slate-700 border border-slate-600 rounded px-3 py-2 text-white text-sm"
+                            value={newVariant.type}
+                            onChange={(e) => setNewVariant({ ...newVariant, type: e.target.value })}
+                        >
+                            <option value="">Variant tanlang...</option>
+                            {TASTE_TYPES.filter(type => !productVariants.find(v => v.type === type)).map(type => (
+                                <option key={type} value={type}>{TASTE_TYPE_LABELS[type]}</option>
+                            ))}
+                        </select>
+                        <Input
+                            type="number"
+                            className="w-32 bg-slate-700 border-slate-600 text-white text-sm"
+                            value={newVariant.priceDelta}
+                            onChange={(e) => setNewVariant({ ...newVariant, priceDelta: e.target.value })}
+                            placeholder="Narx farqi"
+                        />
+                        <button
+                            onClick={handleAddVariant}
+                            disabled={!newVariant.type}
+                            className="p-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                            title="Qo'shish"
+                        >
+                            <PlusCircle className="h-4 w-4" />
+                        </button>
+                    </div>
+
+                    {productVariants.length === 0 && TASTE_TYPES.length === 0 && (
+                        <span className="text-slate-400 text-sm">Variantlar mavjud emas</span>
+                    )}
+                </div>
+            </div>
         </div>
     )
 
@@ -397,6 +588,37 @@ export default function ProductsPage() {
                     </div>
                 ))}
             </div>
+
+            {/* Pagination */}
+            {!loading && pagination.totalPages > 1 && (
+                <div className="flex items-center justify-between px-4 py-3 bg-slate-900 border border-slate-800 rounded-2xl">
+                    <div className="text-sm text-slate-400">
+                        {pagination.total} ta mahsulotdan {(pagination.page - 1) * pagination.limit + 1}-
+                        {Math.min(pagination.page * pagination.limit, pagination.total)} tasi ko'rsatilmoqda
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <Button
+                            variant="outline"
+                            onClick={() => fetchProducts(pagination.page - 1)}
+                            disabled={!pagination.hasPreviousPage}
+                            className="bg-slate-800 border-slate-700 text-white hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            Oldingi
+                        </Button>
+                        <span className="text-sm text-slate-400 px-3">
+                            {pagination.page} / {pagination.totalPages}
+                        </span>
+                        <Button
+                            variant="outline"
+                            onClick={() => fetchProducts(pagination.page + 1)}
+                            disabled={!pagination.hasNextPage}
+                            className="bg-slate-800 border-slate-700 text-white hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            Keyingi
+                        </Button>
+                    </div>
+                </div>
+            )}
 
             {/* Edit Modal */}
             <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>

@@ -18,7 +18,8 @@ import {
     Sun,
     Moon,
     Bell,
-    Warehouse
+    Warehouse,
+    MapPin
 } from "lucide-react"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { useState, useEffect } from "react"
@@ -31,6 +32,7 @@ const navItems = [
     { href: "/dashboard/warehouse", label: "Omborxona", icon: Warehouse },
     { href: "/dashboard/products", label: "Mahsulotlar", icon: Package },
     { href: "/dashboard/categories", label: "Kategoriyalar", icon: FolderOpen },
+    { href: "/dashboard/regions", label: "Regionlar", icon: MapPin },
     { href: "/dashboard/customers", label: "Mijozlar", icon: Users },
     { href: "/dashboard/settings", label: "Sozlamalar", icon: Settings },
 ]
