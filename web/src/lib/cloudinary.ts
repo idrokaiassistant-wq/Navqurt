@@ -10,6 +10,7 @@ import { logWarn } from './logger';
  * This allows the app to start even if Cloudinary is not configured
  */
 let isConfigured = false;
+const isProductionBuild = process.env.NEXT_PHASE === 'phase-production-build';
 
 function configureCloudinary() {
   if (isConfigured) {
@@ -28,16 +29,20 @@ function configureCloudinary() {
   } catch (error) {
     // Cloudinary config is optional for some features
     // Will throw error only when actually used
-    logWarn('Cloudinary configuration warning:', error instanceof Error ? error.message : 'Unknown error');
+    if (!isProductionBuild) {
+      logWarn('Cloudinary configuration warning:', error instanceof Error ? error.message : 'Unknown error');
+    }
     throw error; // Re-throw so upload endpoints can handle it properly
   }
 }
 
 // Configure on module load (for immediate validation)
-try {
-  configureCloudinary();
-} catch {
-  // Ignore - will be handled when actually used
+if (!isProductionBuild) {
+  try {
+    configureCloudinary();
+  } catch {
+    // Ignore - will be handled when actually used
+  }
 }
 
 export default cloudinary;

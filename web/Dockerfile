@@ -1,5 +1,7 @@
 # Next.js production Dockerfile
 FROM node:20-alpine AS base
+# NOTE: Do not bake secrets (e.g. NEXTAUTH_SECRET) into the image with ARG/ENV.
+# Set secrets at runtime via Dokploy/Nixpacks environment variables.
 
 # Install dependencies only when needed
 FROM base AS deps
@@ -70,4 +72,3 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
 # memory_reservation: 256m
 
 CMD ["node", "server.js"]
-
