@@ -1,38 +1,38 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
 describe('auth', () => {
-    const originalEnv = { ...process.env }
+
 
     beforeEach(() => {
         vi.resetModules()
-        delete process.env.NEXTAUTH_SECRET
+        vi.stubEnv('NEXTAUTH_SECRET', undefined)
     })
 
     afterEach(() => {
-        process.env = { ...originalEnv }
+        vi.unstubAllEnvs()
     })
 
     describe('getAuthSecret', () => {
         it("NEXTAUTH_SECRET mavjud bo'lsa qaytaradi", async () => {
-            process.env.NEXTAUTH_SECRET = 'my-super-secret'
+            vi.stubEnv('NEXTAUTH_SECRET', 'my-super-secret')
             const { getAuthSecret } = await import('../auth')
             expect(getAuthSecret()).toBe('my-super-secret')
         })
 
         it("development muhitida fallback qaytaradi", async () => {
-            process.env.NODE_ENV = 'development'
+            vi.stubEnv('NODE_ENV', 'development')
             const { getAuthSecret } = await import('../auth')
             expect(getAuthSecret()).toBe('dev-nextauth-secret')
         })
 
         it("test muhitida fallback qaytaradi", async () => {
-            process.env.NODE_ENV = 'test'
+            vi.stubEnv('NODE_ENV', 'test')
             const { getAuthSecret } = await import('../auth')
             expect(getAuthSecret()).toBe('dev-nextauth-secret')
         })
 
         it("production muhitida secret yo'q bo'lsa xato tashlaydi", async () => {
-            process.env.NODE_ENV = 'production'
+            vi.stubEnv('NODE_ENV', 'production')
             const { getAuthSecret } = await import('../auth')
             expect(() => getAuthSecret()).toThrow('NEXTAUTH_SECRET')
         })
