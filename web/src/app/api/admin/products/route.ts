@@ -58,7 +58,7 @@ export async function GET(request: NextRequest) {
                 hasPreviousPage: pageNumber > 1
             }
         })
-    })
+    }, { method: 'GET', path: '/api/admin/products' })
 }
 
 export async function POST(request: NextRequest) {
@@ -121,6 +121,6 @@ export async function POST(request: NextRequest) {
         }
 
         return createdResponse(productWithCategories)
-    })
+    }, { method: 'POST', path: '/api/admin/products' })
 }
 

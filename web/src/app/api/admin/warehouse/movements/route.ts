@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
         const searchParams = request.nextUrl.searchParams
         const page = parseIntSafe(searchParams.get("page") || "1", "Page").value || 1
         const limit = parseIntSafe(searchParams.get("limit") || "50", "Limit").value || 50
-        
+
         // Validate and clamp pagination values
         const pageNumber = Math.max(1, page)
         const pageSize = Math.min(Math.max(1, limit), 200) // Max 200 items per page
@@ -51,7 +51,7 @@ export async function GET(request: NextRequest) {
                 hasPreviousPage: pageNumber > 1
             }
         })
-    })
+    }, { method: 'GET', path: '/api/admin/warehouse/movements' })
 }
 
 export async function POST(request: NextRequest) {
@@ -139,6 +139,6 @@ export async function POST(request: NextRequest) {
         }
 
         return createdResponse(transformedMovement)
-    })
+    }, { method: 'POST', path: '/api/admin/warehouse/movements' })
 }
 

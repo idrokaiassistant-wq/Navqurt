@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
         const searchParams = request.nextUrl.searchParams
         const page = parseIntSafe(searchParams.get("page") || "1", "Page").value || 1
         const limit = parseIntSafe(searchParams.get("limit") || "50", "Limit").value || 50
-        
+
         // Validate and clamp pagination values
         const pageNumber = Math.max(1, page)
         const pageSize = Math.min(Math.max(1, limit), 200) // Max 200 items per page
@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
 
         const totalPages = Math.ceil(totalCount / pageSize)
 
-        return successResponse({ 
+        return successResponse({
             categories,
             pagination: {
                 page: pageNumber,
@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
                 hasPreviousPage: pageNumber > 1
             }
         })
-    })
+    }, { method: 'GET', path: '/api/admin/categories' })
 }
 
 export async function POST(request: NextRequest) {
@@ -71,14 +71,14 @@ export async function POST(request: NextRequest) {
         }
 
         const category = await prisma.category.create({
-            data: { 
-                name, 
-                color: color && color.length > 0 ? color : null 
+            data: {
+                name,
+                color: color && color.length > 0 ? color : null
             },
         })
 
         return createdResponse({ category })
-    })
+    }, { method: 'POST', path: '/api/admin/categories' })
 }
 
 

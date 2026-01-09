@@ -94,7 +94,7 @@ export async function PATCH(
         }
 
         return successResponse(productWithCategories)
-    })
+    }, { method: 'PATCH', path: '/api/admin/products/[id]' })
 }
 
 export async function DELETE(
@@ -115,6 +115,6 @@ export async function DELETE(
         })
 
         return messageResponse("Mahsulot muvaffaqiyatli o'chirildi")
-    })
+    }, { method: 'DELETE', path: '/api/admin/products/[id]' })
 }
 

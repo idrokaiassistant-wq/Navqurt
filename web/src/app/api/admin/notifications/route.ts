@@ -90,5 +90,5 @@ export async function GET(request: NextRequest) {
         return successResponse({
             notifications: limitedNotifications,
         })
-    })
+    }, { method: 'GET', path: '/api/admin/notifications' })
 }

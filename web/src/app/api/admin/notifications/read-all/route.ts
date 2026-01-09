@@ -15,5 +15,5 @@ export async function PATCH(request: NextRequest) {
         return successResponse({
             message: "Barcha xabarnomalar o'qilgan deb belgilandi",
         })
-    })
+    }, { method: 'PATCH', path: '/api/admin/notifications/read-all' })
 }

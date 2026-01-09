@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
             logoUrl: admin.logoUrl,
             createdAt: admin.createdAt.toISOString()
         })
-    })
+    }, { method: 'GET', path: '/api/admin/settings' })
 }
 
 export async function PATCH(request: NextRequest) {
@@ -82,5 +82,5 @@ export async function PATCH(request: NextRequest) {
             logoUrl: updated.logoUrl,
             message: newPassword ? "Parol yangilandi" : "Profil yangilandi"
         })
-    })
+    }, { method: 'PATCH', path: '/api/admin/settings' })
 }

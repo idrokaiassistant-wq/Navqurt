@@ -66,7 +66,7 @@ export async function PATCH(
         })
 
         return successResponse(item)
-    })
+    }, { method: 'PATCH', path: '/api/admin/warehouse/items/[id]' })
 }
 
 export async function DELETE(
@@ -82,5 +82,5 @@ export async function DELETE(
         })
 
         return messageResponse("Omborxona mahsuloti muvaffaqiyatli o'chirildi")
-    })
+    }, { method: 'DELETE', path: '/api/admin/warehouse/items/[id]' })
 }

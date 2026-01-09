@@ -20,5 +20,5 @@ export async function PATCH(
         return successResponse({
             message: `Xabarnoma ${id} o'qilgan deb belgilandi`,
         })
-    })
+    }, { method: 'PATCH', path: '/api/admin/notifications/[id]/read' })
 }

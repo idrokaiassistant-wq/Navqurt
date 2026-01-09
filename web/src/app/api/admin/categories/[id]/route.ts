@@ -39,7 +39,7 @@ export async function PATCH(
         })
 
         return successResponse({ category })
-    })
+    }, { method: 'PATCH', path: '/api/admin/categories/[id]' })
 }
 
 export async function DELETE(
@@ -55,6 +55,6 @@ export async function DELETE(
         })
 
         return messageResponse("Kategoriya muvaffaqiyatli o'chirildi")
-    })
+    }, { method: 'DELETE', path: '/api/admin/categories/[id]' })
 }
 
