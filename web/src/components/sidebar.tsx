@@ -17,7 +17,6 @@ import {
     ChevronRight,
     Sun,
     Moon,
-    Bell,
     Warehouse,
     MapPin
 } from "lucide-react"
@@ -25,6 +24,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { useState, useEffect } from "react"
 import { useStore } from "@/lib/store"
 import { apiGet } from "@/lib/api-client"
+import { NotificationDropdown } from "@/components/notification-dropdown"
 
 const navItems = [
     { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -171,12 +171,10 @@ export function Sidebar() {
                     >
                         {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
                     </button>
-                    <button className="p-2 relative text-sidebar-foreground/70">
-                        <Bell className="h-5 w-5" />
-                        <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
-                            3
-                        </span>
-                    </button>
+                    <NotificationDropdown
+                        buttonClassName="p-2 relative text-sidebar-foreground/70 cursor-pointer hover:text-sidebar-foreground transition-colors"
+                        badgeClassName="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center pointer-events-none"
+                    />
                 </div>
             </div>
 

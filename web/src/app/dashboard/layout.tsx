@@ -1,8 +1,9 @@
 "use client"
 
 import { Sidebar } from "@/components/sidebar"
-import { Sun, Moon, Bell } from "lucide-react"
+import { Sun, Moon } from "lucide-react"
 import { useStore } from "@/lib/store"
+import { NotificationDropdown } from "@/components/notification-dropdown"
 
 export default function DashboardLayout({
     children,
@@ -23,12 +24,10 @@ export default function DashboardLayout({
                     >
                         {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
                     </button>
-                    <button className="p-2.5 relative transition-colors text-muted-foreground hover:text-foreground">
-                        <Bell className="h-5 w-5" />
-                        <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-medium">
-                            3
-                        </span>
-                    </button>
+                    <NotificationDropdown
+                        buttonClassName="p-2.5 relative transition-colors text-muted-foreground hover:text-foreground cursor-pointer"
+                        badgeClassName="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-medium"
+                    />
                 </div>
                 <div className="p-4 lg:p-6 w-full max-w-full overflow-x-hidden">
                     {children}

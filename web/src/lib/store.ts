@@ -10,6 +10,11 @@ interface AppState {
     // Logo
     logoUrl: string
     setLogoUrl: (url: string) => void
+
+    // Notifications
+    readNotificationIds: string[]
+    markNotificationAsRead: (id: string) => void
+    markAllNotificationsAsRead: () => void
 }
 
 export const useStore = create<AppState>()(
@@ -23,6 +28,20 @@ export const useStore = create<AppState>()(
             // Logo
             logoUrl: '/logo.png',
             setLogoUrl: (logoUrl) => set({ logoUrl }),
+
+            // Notifications
+            readNotificationIds: [],
+            markNotificationAsRead: (id) => set((state) => {
+                if (state.readNotificationIds.includes(id)) {
+                    return state
+                }
+                return {
+                    readNotificationIds: [...state.readNotificationIds, id]
+                }
+            }),
+            markAllNotificationsAsRead: () => set(() => ({
+                readNotificationIds: []
+            })),
         }),
         {
             name: 'navqurt-admin-store',
