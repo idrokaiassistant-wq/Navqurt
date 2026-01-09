@@ -77,10 +77,6 @@ export default function OrdersPage() {
     const [statusFilter, setStatusFilter] = useState<string>("")
     const [searchQuery, setSearchQuery] = useState("")
 
-    useEffect(() => {
-        fetchOrders(1)
-    }, [statusFilter, fetchOrders])
-
     const fetchOrders = useCallback(async (page: number = 1) => {
         try {
             setLoading(true)
@@ -101,6 +97,10 @@ export default function OrdersPage() {
             logError("Failed to fetch orders:", errorMessage)
         }
     }, [statusFilter])
+
+    useEffect(() => {
+        fetchOrders(1)
+    }, [statusFilter, fetchOrders])
 
     const fetchOrderDetails = async (orderId: string) => {
         try {

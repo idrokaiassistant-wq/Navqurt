@@ -69,20 +69,6 @@ export default function SettingsPage() {
         }
     }
 
-    useEffect(() => {
-        loadProfile()
-        // ... rest of useEffect
-        // Load notifications from localStorage
-        try {
-            const savedNotifications = localStorage.getItem(STORAGE_KEYS.NOTIFICATIONS)
-            if (savedNotifications) {
-                setNotifications(JSON.parse(savedNotifications))
-            }
-        } catch {
-            // Ignore localStorage parse errors
-        }
-    }, [loadProfile, setLogoUrl])
-
     const loadProfile = useCallback(async () => {
         try {
             const data = await apiGet<AdminProfile & { logoUrl: string }>("/api/admin/settings")
@@ -97,6 +83,20 @@ export default function SettingsPage() {
             setProfileLoading(false)
         }
     }, [setLogoUrl])
+
+    useEffect(() => {
+        loadProfile()
+        // ... rest of useEffect
+        // Load notifications from localStorage
+        try {
+            const savedNotifications = localStorage.getItem(STORAGE_KEYS.NOTIFICATIONS)
+            if (savedNotifications) {
+                setNotifications(JSON.parse(savedNotifications))
+            }
+        } catch {
+            // Ignore localStorage parse errors
+        }
+    }, [loadProfile, setLogoUrl])
 
     const handleProfileSave = async () => {
         setProfileSaving(true)

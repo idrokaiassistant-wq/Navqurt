@@ -65,11 +65,6 @@ export default function ProductsPage() {
     const [uploading, setUploading] = useState(false)
     const fileInputRef = useRef<HTMLInputElement>(null)
 
-    useEffect(() => {
-        fetchProducts(1)
-        fetchCategories()
-    }, [fetchProducts, fetchCategories])
-
     const fetchProducts = useCallback(async (page: number = 1) => {
         try {
             setLoading(true)
@@ -94,6 +89,11 @@ export default function ProductsPage() {
             logError("Failed to fetch categories:", errorMessage)
         }
     }, [])
+
+    useEffect(() => {
+        fetchProducts(1)
+        fetchCategories()
+    }, [fetchProducts, fetchCategories])
 
     const handleImageUpload = async (file: File) => {
         setUploading(true)
