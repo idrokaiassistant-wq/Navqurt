@@ -1,7 +1,7 @@
 
 "use client"
 
-import { useEffect, useMemo, useState, useRef } from "react"
+import { useEffect, useMemo, useState, useRef, useCallback } from "react"
 import { Search, Plus, Edit2, Trash2 } from "lucide-react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
@@ -62,11 +62,10 @@ export default function CustomersPage() {
 
     // Regions state
     const [regions, setRegions] = useState<ApiRegion[]>([])
-    const [loadingRegions, setLoadingRegions] = useState(false)
 
     const mountedRef = useRef(true)
 
-    const fetchCustomers = async (page: number = 1) => {
+    const fetchCustomers = useCallback(async (page: number = 1) => {
         try {
             setLoading(true)
             setError("")
@@ -77,9 +76,9 @@ export default function CustomersPage() {
                     setPagination(data.pagination)
                 }
             }
-        } catch (e) {
+        } catch (_e) {
             if (mountedRef.current) {
-                const errorMessage = handleApiError(e)
+                const errorMessage = handleApiError(_e)
                 setError(errorMessage)
             }
         } finally {
@@ -87,19 +86,16 @@ export default function CustomersPage() {
                 setLoading(false)
             }
         }
-    }
+    }, [])
 
-    const fetchRegions = async () => {
+    const fetchRegions = useCallback(async () => {
         try {
-            setLoadingRegions(true)
             const data = await apiGet<{ regions: ApiRegion[] }>("/api/admin/regions")
             setRegions(data.regions ?? [])
-        } catch (e) {
+        } catch {
             // Silently fail - regions are optional
-        } finally {
-            setLoadingRegions(false)
         }
-    }
+    }, [])
 
     useEffect(() => {
         mountedRef.current = true
@@ -108,7 +104,7 @@ export default function CustomersPage() {
         return () => {
             mountedRef.current = false
         }
-    }, [])
+    }, [fetchCustomers, fetchRegions])
 
     const filtered = useMemo(() => {
         const q = query.trim().toLowerCase()
@@ -366,7 +362,7 @@ export default function CustomersPage() {
                     <div className="px-5 py-4 border-t border-border flex items-center justify-between">
                         <div className="text-sm text-muted-foreground">
                             {pagination.total} ta mijozdan {(pagination.page - 1) * pagination.limit + 1}-
-                            {Math.min(pagination.page * pagination.limit, pagination.total)} tasi ko'rsatilmoqda
+                            {Math.min(pagination.page * pagination.limit, pagination.total)} tasi ko&apos;rsatilmoqda
                         </div>
                         <div className="flex items-center gap-2">
                             <Button

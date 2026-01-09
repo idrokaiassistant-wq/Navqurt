@@ -2,7 +2,7 @@ import { NextRequest } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { assertAdmin } from "@/lib/api-auth"
 import { withApiErrorHandler, successResponse, createdResponse, badRequestResponse, conflictResponse } from "@/lib/api-response"
-import { validateRequired, validateStringLength, parseIntSafe, validatePositiveNumber, validateNonNegativeNumber } from "@/lib/validation"
+import { validateRequired, validateStringLength, parseIntSafe, validateNonNegativeNumber } from "@/lib/validation"
 
 export async function GET(request: NextRequest) {
     return withApiErrorHandler(async () => {

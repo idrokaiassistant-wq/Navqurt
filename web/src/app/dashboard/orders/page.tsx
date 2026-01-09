@@ -1,9 +1,10 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback } from "react"
 import { Clock, Search, Eye } from "lucide-react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
+import Image from "next/image"
 import { timeAgo, formatPrice } from "@/lib/date-utils"
 import { apiGet, apiPatch, handleApiError } from "@/lib/api-client"
 import { logError } from "@/lib/logger"
@@ -78,9 +79,9 @@ export default function OrdersPage() {
 
     useEffect(() => {
         fetchOrders(1)
-    }, [statusFilter])
+    }, [statusFilter, fetchOrders])
 
-    const fetchOrders = async (page: number = 1) => {
+    const fetchOrders = useCallback(async (page: number = 1) => {
         try {
             setLoading(true)
             const params = new URLSearchParams({
@@ -98,10 +99,8 @@ export default function OrdersPage() {
         } catch (error) {
             const errorMessage = handleApiError(error)
             logError("Failed to fetch orders:", errorMessage)
-        } finally {
-            setLoading(false)
         }
-    }
+    }, [statusFilter])
 
     const fetchOrderDetails = async (orderId: string) => {
         try {
@@ -259,7 +258,7 @@ export default function OrdersPage() {
                     <div className="px-5 py-4 border-t border-border flex items-center justify-between">
                         <div className="text-sm text-muted-foreground">
                             {pagination.total} ta buyurtmadan {(pagination.page - 1) * pagination.limit + 1}-
-                            {Math.min(pagination.page * pagination.limit, pagination.total)} tasi ko'rsatilmoqda
+                            {Math.min(pagination.page * pagination.limit, pagination.total)} tasi ko&apos;rsatilmoqda
                         </div>
                         <div className="flex items-center gap-2">
                             <Button
@@ -324,7 +323,7 @@ export default function OrdersPage() {
 
                             {/* Customer Info */}
                             <div className="border-t border-border pt-4">
-                                <h3 className="text-lg font-semibold text-foreground mb-3">Mijoz ma'lumotlari</h3>
+                                <h3 className="text-lg font-semibold text-foreground mb-3">Mijoz ma&apos;lumotlari</h3>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
                                         <div className="text-sm text-muted-foreground">Ism</div>
@@ -359,11 +358,15 @@ export default function OrdersPage() {
                                         <div key={item.id} className="flex items-center justify-between p-3 bg-secondary rounded-lg">
                                             <div className="flex items-center gap-3">
                                                 {item.product.image && (
-                                                    <img
-                                                        src={item.product.image}
-                                                        alt={item.product.name}
-                                                        className="w-12 h-12 rounded-lg object-cover"
-                                                    />
+                                                    <div className="relative w-12 h-12 rounded-lg overflow-hidden shrink-0">
+                                                        <Image
+                                                            src={item.product.image}
+                                                            alt={item.product.name}
+                                                            fill
+                                                            className="object-cover"
+                                                            unoptimized
+                                                        />
+                                                    </div>
                                                 )}
                                                 <div>
                                                     <div className="text-foreground font-medium">{item.product.name}</div>

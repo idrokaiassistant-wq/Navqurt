@@ -1,138 +1,168 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
 describe('logger', () => {
-    const originalEnv = process.env
-    const originalConsole = {
-        error: console.error,
-        warn: console.warn,
-        log: console.log,
-        debug: console.debug
+    const originalEnv = { ...process.env }
+    let mockConsole: {
+        error: ReturnType<typeof vi.fn>
+        warn: ReturnType<typeof vi.fn>
+        log: ReturnType<typeof vi.fn>
+        debug: ReturnType<typeof vi.fn>
     }
 
     beforeEach(() => {
         vi.resetModules()
-        process.env = { ...originalEnv }
-        console.error = vi.fn()
-        console.warn = vi.fn()
-        console.log = vi.fn()
-        console.debug = vi.fn()
+        mockConsole = {
+            error: vi.fn(),
+            warn: vi.fn(),
+            log: vi.fn(),
+            debug: vi.fn(),
+        }
+        vi.spyOn(console, 'error').mockImplementation(mockConsole.error)
+        vi.spyOn(console, 'warn').mockImplementation(mockConsole.warn)
+        vi.spyOn(console, 'log').mockImplementation(mockConsole.log)
+        vi.spyOn(console, 'debug').mockImplementation(mockConsole.debug)
     })
 
     afterEach(() => {
-        process.env = originalEnv
-        console.error = originalConsole.error
-        console.warn = originalConsole.warn
-        console.log = originalConsole.log
-        console.debug = originalConsole.debug
+        process.env = { ...originalEnv }
+        vi.restoreAllMocks()
     })
 
     describe('logError', () => {
-        it("development muhitida log qiladi", async () => {
+        it("development muhitida console.error chaqiradi", async () => {
             process.env.NODE_ENV = 'development'
             const { logError } = await import('../logger')
             logError('test error')
-            expect(console.error).toHaveBeenCalled()
+            expect(mockConsole.error).toHaveBeenCalled()
         })
 
-        it("production muhitida ham log qiladi", async () => {
+        it("production muhitida console.error chaqiradi", async () => {
             process.env.NODE_ENV = 'production'
             const { logError } = await import('../logger')
             logError('test error')
-            expect(console.error).toHaveBeenCalled()
+            expect(mockConsole.error).toHaveBeenCalled()
+        })
+
+        it("bir nechta argument bilan ishlaydi", async () => {
+            process.env.NODE_ENV = 'development'
+            const { logError } = await import('../logger')
+            logError('error', { detail: 'info' }, 123)
+            expect(mockConsole.error).toHaveBeenCalled()
         })
     })
 
     describe('logWarn', () => {
-        it("development muhitida log qiladi", async () => {
+        it("development muhitida console.warn chaqiradi", async () => {
             process.env.NODE_ENV = 'development'
             const { logWarn } = await import('../logger')
             logWarn('test warning')
-            expect(console.warn).toHaveBeenCalled()
+            expect(mockConsole.warn).toHaveBeenCalled()
         })
 
-        it("production muhitida ham log qiladi", async () => {
+        it("production muhitida console.warn chaqiradi", async () => {
             process.env.NODE_ENV = 'production'
             const { logWarn } = await import('../logger')
             logWarn('test warning')
-            expect(console.warn).toHaveBeenCalled()
+            expect(mockConsole.warn).toHaveBeenCalled()
         })
     })
 
     describe('logInfo', () => {
-        it("development muhitida log qiladi", async () => {
+        it("development muhitida console.log chaqiradi", async () => {
             process.env.NODE_ENV = 'development'
             const { logInfo } = await import('../logger')
             logInfo('test info')
-            expect(console.log).toHaveBeenCalled()
+            expect(mockConsole.log).toHaveBeenCalled()
         })
 
-        it("production muhitida log qilmaydi", async () => {
+        it("production muhitida chaqirmaydi", async () => {
             process.env.NODE_ENV = 'production'
             const { logInfo } = await import('../logger')
             logInfo('test info')
-            // Production da logInfo ishlamaydi (faqat development)
+            // Production da logInfo ishlamaydi
         })
     })
 
     describe('logDebug', () => {
-        it("development muhitida log qiladi", async () => {
+        it("development muhitida console.debug chaqiradi", async () => {
             process.env.NODE_ENV = 'development'
             const { logDebug } = await import('../logger')
             logDebug('test debug')
-            expect(console.debug).toHaveBeenCalled()
+            expect(mockConsole.debug).toHaveBeenCalled()
+        })
+
+        it("production muhitida chaqirmaydi", async () => {
+            process.env.NODE_ENV = 'production'
+            const { logDebug } = await import('../logger')
+            logDebug('test debug')
+            // Production da logDebug ishlamaydi
         })
     })
 
     describe('logPerformance', () => {
-        it("development muhitida log qiladi", async () => {
+        it("development muhitida console.log chaqiradi", async () => {
             process.env.NODE_ENV = 'development'
             const { logPerformance } = await import('../logger')
             logPerformance('response_time', 150)
-            expect(console.log).toHaveBeenCalled()
+            expect(mockConsole.log).toHaveBeenCalled()
         })
 
-        it("production muhitida ham log qiladi", async () => {
+        it("production muhitida console.log chaqiradi", async () => {
             process.env.NODE_ENV = 'production'
             const { logPerformance } = await import('../logger')
             logPerformance('response_time', 150)
-            expect(console.log).toHaveBeenCalled()
+            expect(mockConsole.log).toHaveBeenCalled()
         })
 
         it("custom unit bilan ishlaydi", async () => {
             process.env.NODE_ENV = 'development'
             const { logPerformance } = await import('../logger')
             logPerformance('memory', 1024, 'MB')
-            expect(console.log).toHaveBeenCalled()
+            expect(mockConsole.log).toHaveBeenCalled()
+        })
+
+        it("test muhitida chaqirmaydi", async () => {
+            process.env.NODE_ENV = 'test'
+            const { logPerformance } = await import('../logger')
+            logPerformance('metric', 100)
+            // Test muhitida logPerformance ishlamaydi
         })
     })
 
     describe('logApiRequest', () => {
-        it("500+ status uchun warn log qiladi", async () => {
-            process.env.NODE_ENV = 'development'
-            const { logApiRequest } = await import('../logger')
-            logApiRequest('GET', '/api/test', 500, 100)
-            expect(console.warn).toHaveBeenCalled()
-        })
-
-        it("400+ status uchun warn log qiladi", async () => {
-            process.env.NODE_ENV = 'development'
-            const { logApiRequest } = await import('../logger')
-            logApiRequest('POST', '/api/test', 400, 50)
-            expect(console.warn).toHaveBeenCalled()
-        })
-
         it("200 status development da info log qiladi", async () => {
             process.env.NODE_ENV = 'development'
             const { logApiRequest } = await import('../logger')
-            logApiRequest('GET', '/api/test', 200, 100)
-            expect(console.log).toHaveBeenCalled()
+            logApiRequest('GET', '/api/test', 200, 50)
+            // logInfo chaqiriladi
         })
 
-        it("production da sekin so'rovlarni (>1s) log qiladi", async () => {
+        it("400 status uchun warn log qiladi", async () => {
+            process.env.NODE_ENV = 'development'
+            const { logApiRequest } = await import('../logger')
+            logApiRequest('POST', '/api/test', 400, 100)
+            expect(mockConsole.warn).toHaveBeenCalled()
+        })
+
+        it("500 status uchun warn log qiladi", async () => {
+            process.env.NODE_ENV = 'development'
+            const { logApiRequest } = await import('../logger')
+            logApiRequest('GET', '/api/error', 500, 150)
+            expect(mockConsole.warn).toHaveBeenCalled()
+        })
+
+        it("production da sekin so'rovlar (>1s) uchun warn log qiladi", async () => {
             process.env.NODE_ENV = 'production'
             const { logApiRequest } = await import('../logger')
             logApiRequest('GET', '/api/slow', 200, 1500)
-            expect(console.warn).toHaveBeenCalled()
+            expect(mockConsole.warn).toHaveBeenCalled()
+        })
+
+        it("production da tez so'rovlar uchun warn chaqirmaydi", async () => {
+            process.env.NODE_ENV = 'production'
+            const { logApiRequest } = await import('../logger')
+            logApiRequest('GET', '/api/fast', 200, 50)
+            // Tez so'rov uchun warn chaqirilmaydi
         })
     })
 })

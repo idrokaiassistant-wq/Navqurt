@@ -3,15 +3,32 @@ import { assertAdmin } from "@/lib/api-auth"
 import { withApiErrorHandler, successResponse, badRequestResponse, internalServerErrorResponse } from "@/lib/api-response"
 import { uploadFile, validateFile } from "@/lib/file-storage"
 import type { CloudinaryUploadResponse } from "@/lib/types"
+import { prisma } from "@/lib/prisma"
+
+// Cloudinary callback types
+interface CloudinaryError {
+    message?: string
+}
+
+interface CloudinaryResult {
+    secure_url: string
+    public_id: string
+    format?: string
+    width?: number
+    height?: number
+    bytes?: number
+    resource_type?: string
+}
 
 // Check if Cloudinary is configured
-function isCloudinaryConfigured(): boolean {
+async function getCloudinaryInstance(): Promise<typeof import("cloudinary").v2 | null> {
     try {
-        const { getCloudinaryConfig } = require("@/lib/config")
-        getCloudinaryConfig()
-        return true
+        const config = await import("@/lib/config")
+        config.getCloudinaryConfig()
+        const cloudinaryModule = await import("@/lib/cloudinary")
+        return cloudinaryModule.default
     } catch {
-        return false
+        return null
     }
 }
 
@@ -33,10 +50,9 @@ export async function POST(request: NextRequest) {
         }
 
         // Try Cloudinary first if configured
-        if (isCloudinaryConfigured()) {
+        const cloudinary = await getCloudinaryInstance()
+        if (cloudinary) {
             try {
-                const cloudinary = require("@/lib/cloudinary").default
-
                 const bytes = await file.arrayBuffer()
                 const buffer = Buffer.from(bytes)
 
@@ -46,7 +62,7 @@ export async function POST(request: NextRequest) {
                             folder: "navqurt_products",
                             resource_type: "auto",
                         },
-                        (error: any, result: any) => {
+                        (error: CloudinaryError | undefined, result: CloudinaryResult | undefined) => {
                             if (error) {
                                 const errorMsg = error.message || 'Cloudinary yuklash xatosi'
                                 reject(new Error(`Cloudinary xatosi: ${errorMsg}`))
@@ -83,7 +99,6 @@ export async function POST(request: NextRequest) {
             const buffer = Buffer.from(bytes)
             const base64Data = buffer.toString('base64')
 
-            const { prisma } = require("@/lib/prisma")
             const image = await prisma.image.create({
                 data: {
                     filename: file.name,
@@ -116,4 +131,3 @@ export async function POST(request: NextRequest) {
         }
     })
 }
-

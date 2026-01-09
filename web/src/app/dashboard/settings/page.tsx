@@ -1,7 +1,8 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { User, Lock, Bell, Palette, Check, AlertCircle } from "lucide-react"
+import Image from "next/image"
 import { useStore } from "@/lib/store"
 import { apiGet, apiPatch, apiPostFormData, handleApiError } from "@/lib/api-client"
 import { STORAGE_KEYS, DEFAULT_NOTIFICATIONS } from "@/lib/constants"
@@ -80,9 +81,9 @@ export default function SettingsPage() {
         } catch {
             // Ignore localStorage parse errors
         }
-    }, [])
+    }, [loadProfile, setLogoUrl])
 
-    const loadProfile = async () => {
+    const loadProfile = useCallback(async () => {
         try {
             const data = await apiGet<AdminProfile & { logoUrl: string }>("/api/admin/settings")
             setProfileForm({ name: data.name || "", email: data.email })
@@ -95,7 +96,7 @@ export default function SettingsPage() {
         } finally {
             setProfileLoading(false)
         }
-    }
+    }, [setLogoUrl])
 
     const handleProfileSave = async () => {
         setProfileSaving(true)
@@ -315,11 +316,13 @@ export default function SettingsPage() {
                         <div className="space-y-3">
                             <label className="block text-sm text-muted-foreground">Tizim logosi</label>
                             <div className="flex items-center gap-4">
-                                <div className="w-16 h-16 rounded-full overflow-hidden bg-secondary flex-shrink-0">
-                                    <img
-                                        src={logoUrl}
+                                <div className="w-16 h-16 rounded-full overflow-hidden bg-secondary flex-shrink-0 relative">
+                                    <Image
+                                        src={logoUrl || '/logo.png'}
                                         alt="Logo"
-                                        className="w-full h-full object-cover"
+                                        fill
+                                        className="object-cover"
+                                        unoptimized
                                     />
                                 </div>
                                 <div className="flex-1">

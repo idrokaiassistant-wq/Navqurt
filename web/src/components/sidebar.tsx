@@ -135,7 +135,7 @@ export function Sidebar() {
                 if (data.logoUrl) {
                     setLogoUrl(data.logoUrl)
                 }
-            } catch (error) {
+            } catch {
                 // Silently fail - use default logo from store
                 // Default logo is already set in store, so no action needed
             }

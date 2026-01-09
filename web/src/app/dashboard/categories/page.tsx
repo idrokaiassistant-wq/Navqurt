@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useState, useCallback } from "react"
 import { Plus, Search, Trash2, Edit2 } from "lucide-react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
@@ -40,7 +40,7 @@ export default function CategoriesPage() {
     const [editCategory, setEditCategory] = useState<ApiCategory | null>(null)
     const [editForm, setEditForm] = useState({ name: "", color: "" })
 
-    const load = async (page: number = 1) => {
+    const load = useCallback(async (page: number = 1) => {
         setLoading(true)
         setError("")
         try {
@@ -49,17 +49,17 @@ export default function CategoriesPage() {
             if (data.pagination) {
                 setPagination(data.pagination)
             }
-        } catch (e) {
-            const errorMessage = handleApiError(e)
+        } catch (_e) {
+            const errorMessage = handleApiError(_e)
             setError(errorMessage)
         } finally {
             setLoading(false)
         }
-    }
+    }, [])
 
     useEffect(() => {
         void load()
-    }, [])
+    }, [load])
 
     const filtered = useMemo(() => {
         const q = query.trim().toLowerCase()
@@ -229,7 +229,7 @@ export default function CategoriesPage() {
                 <div className="flex items-center justify-between px-4 py-3 bg-card border border-border rounded-2xl">
                     <div className="text-sm text-muted-foreground">
                         {pagination.total} ta kategoriyadan {(pagination.page - 1) * pagination.limit + 1}-
-                        {Math.min(pagination.page * pagination.limit, pagination.total)} tasi ko'rsatilmoqda
+                        {Math.min(pagination.page * pagination.limit, pagination.total)} tasi ko&apos;rsatilmoqda
                     </div>
                     <div className="flex items-center gap-2">
                         <Button

@@ -2,7 +2,7 @@ import { NextRequest } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { assertAdmin } from "@/lib/api-auth"
 import { withApiErrorHandler, successResponse, createdResponse, badRequestResponse, conflictResponse } from "@/lib/api-response"
-import { parseIntSafe, validateRequired, validateStringLength } from "@/lib/validation"
+import { parseIntSafe, validateStringLength } from "@/lib/validation"
 
 export async function GET(request: NextRequest) {
     return withApiErrorHandler(async () => {
@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
         const searchParams = request.nextUrl.searchParams
         const page = parseIntSafe(searchParams.get("page") || "1", "Page").value || 1
         const limit = parseIntSafe(searchParams.get("limit") || "50", "Limit").value || 50
-        
+
         // Validate and clamp pagination values
         const pageNumber = Math.max(1, page)
         const pageSize = Math.min(Math.max(1, limit), 200) // Max 200 items per page
@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
 
         const totalPages = Math.ceil(totalCount / pageSize)
 
-        return successResponse({ 
+        return successResponse({
             customers,
             pagination: {
                 page: pageNumber,

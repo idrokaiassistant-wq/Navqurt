@@ -2,7 +2,6 @@ import { describe, it, expect } from 'vitest'
 import type {
     ApiErrorResponse,
     ApiSuccess,
-    ApiResponse,
     PaginatedResponse,
     CloudinaryUploadResponse,
     CloudinaryDeleteResponse,

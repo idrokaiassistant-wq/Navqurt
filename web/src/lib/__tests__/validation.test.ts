@@ -170,6 +170,17 @@ describe('validateEnum', () => {
         expect(result.valid).toBe(false)
         expect(result.error).toContain('quyidagi qiymatlardan biri')
     })
+
+    it("non-string qiymat uchun false qaytarish", () => {
+        const result = validateEnum(123 as unknown, validValues, 'status')
+        expect(result.valid).toBe(false)
+        expect(result.error).toContain('string')
+    })
+
+    it("null uchun false qaytarish", () => {
+        const result = validateEnum(null as unknown, validValues, 'status')
+        expect(result.valid).toBe(false)
+    })
 })
 
 describe('validatePositiveNumber', () => {
@@ -205,5 +216,34 @@ describe('validateNonNegativeNumber', () => {
         const result = validateNonNegativeNumber(-5, 'test')
         expect(result.valid).toBe(false)
         expect(result.error).toContain('manfiy')
+    })
+
+    it("NaN uchun false qaytarish", () => {
+        const result = validateNonNegativeNumber(NaN, 'test')
+        expect(result.valid).toBe(false)
+        expect(result.error).toContain('son')
+    })
+})
+
+// Edge cases uchun qo'shimcha testlar
+describe('validateStringLength edge cases', () => {
+    it("non-string uchun xato qaytaradi", () => {
+        // TypeScript bu yerda xato beradi, lekin runtime da mumkin
+        const result = validateStringLength(123 as unknown as string, 1, 10, 'test')
+        expect(result.valid).toBe(false)
+        expect(result.error).toContain('string')
+    })
+})
+
+describe('validatePositiveNumber edge cases', () => {
+    it("NaN uchun false qaytarish", () => {
+        const result = validatePositiveNumber(NaN, 'test')
+        expect(result.valid).toBe(false)
+        expect(result.error).toContain('son')
+    })
+
+    it("non-number uchun false qaytarish", () => {
+        const result = validatePositiveNumber('5' as unknown as number, 'test')
+        expect(result.valid).toBe(false)
     })
 })

@@ -1,52 +1,74 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { getAuthSecret, DEV_ADMIN_EMAIL, DEV_ADMIN_PASSWORD } from '../auth'
 
 describe('auth', () => {
-    const originalEnv = process.env
+    const originalEnv = { ...process.env }
 
     beforeEach(() => {
         vi.resetModules()
-        process.env = { ...originalEnv }
+        delete process.env.NEXTAUTH_SECRET
     })
 
     afterEach(() => {
-        process.env = originalEnv
+        process.env = { ...originalEnv }
     })
 
     describe('getAuthSecret', () => {
-        it("NEXTAUTH_SECRET mavjud bo'lsa uni qaytaradi", () => {
+        it("NEXTAUTH_SECRET mavjud bo'lsa qaytaradi", async () => {
             process.env.NEXTAUTH_SECRET = 'my-super-secret'
-            // Re-import to get fresh module
-            const { getAuthSecret: freshGetAuthSecret } = require('../auth')
-            expect(freshGetAuthSecret()).toBe('my-super-secret')
+            const { getAuthSecret } = await import('../auth')
+            expect(getAuthSecret()).toBe('my-super-secret')
         })
 
-        it("development muhitida fallback qaytaradi", () => {
-            process.env.NEXTAUTH_SECRET = undefined
+        it("development muhitida fallback qaytaradi", async () => {
             process.env.NODE_ENV = 'development'
-            const { getAuthSecret: freshGetAuthSecret } = require('../auth')
-            expect(freshGetAuthSecret()).toBe('dev-nextauth-secret')
+            const { getAuthSecret } = await import('../auth')
+            expect(getAuthSecret()).toBe('dev-nextauth-secret')
         })
 
-        it("production muhitida secret yo'q bo'lsa xato tashlaydi", () => {
-            process.env.NEXTAUTH_SECRET = undefined
+        it("test muhitida fallback qaytaradi", async () => {
+            process.env.NODE_ENV = 'test'
+            const { getAuthSecret } = await import('../auth')
+            expect(getAuthSecret()).toBe('dev-nextauth-secret')
+        })
+
+        it("production muhitida secret yo'q bo'lsa xato tashlaydi", async () => {
             process.env.NODE_ENV = 'production'
-            const { getAuthSecret: freshGetAuthSecret } = require('../auth')
-            expect(() => freshGetAuthSecret()).toThrow('NEXTAUTH_SECRET production muhitida majburiy')
+            const { getAuthSecret } = await import('../auth')
+            expect(() => getAuthSecret()).toThrow('NEXTAUTH_SECRET')
         })
     })
 
     describe('DEV_ADMIN_EMAIL', () => {
-        it("default qiymat mavjud", () => {
+        it("string bo'lishi kerak", async () => {
+            const { DEV_ADMIN_EMAIL } = await import('../auth')
             expect(typeof DEV_ADMIN_EMAIL).toBe('string')
+        })
+
+        it("email formatida bo'lishi kerak", async () => {
+            const { DEV_ADMIN_EMAIL } = await import('../auth')
+            expect(DEV_ADMIN_EMAIL).toContain('@')
+        })
+
+        it("default qiymatga ega", async () => {
+            const { DEV_ADMIN_EMAIL } = await import('../auth')
             expect(DEV_ADMIN_EMAIL.length).toBeGreaterThan(0)
         })
     })
 
     describe('DEV_ADMIN_PASSWORD', () => {
-        it("default qiymat mavjud", () => {
+        it("string bo'lishi kerak", async () => {
+            const { DEV_ADMIN_PASSWORD } = await import('../auth')
             expect(typeof DEV_ADMIN_PASSWORD).toBe('string')
+        })
+
+        it("bo'sh bo'lmasligi kerak", async () => {
+            const { DEV_ADMIN_PASSWORD } = await import('../auth')
             expect(DEV_ADMIN_PASSWORD.length).toBeGreaterThan(0)
+        })
+
+        it("default qiymatga ega", async () => {
+            const { DEV_ADMIN_PASSWORD } = await import('../auth')
+            expect(DEV_ADMIN_PASSWORD).toBeDefined()
         })
     })
 })

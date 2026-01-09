@@ -24,7 +24,7 @@ export async function PATCH(
         }
 
         // Validate priceDelta if provided
-        let updateData: { priceDelta?: number } = {}
+        const updateData: { priceDelta?: number } = {}
         if (priceDelta !== undefined) {
             const priceDeltaValidation = parseIntSafe(priceDelta, "Narx farqi")
             if (!priceDeltaValidation.valid) {

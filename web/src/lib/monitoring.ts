@@ -17,15 +17,22 @@ export async function getPrismaMetrics(): Promise<{
 } | null> {
   try {
     // Prisma 5.x metrics (if available)
-    if ('$metrics' in prisma && typeof (prisma as any).$metrics === 'function') {
-      const metrics = await (prisma as any).$metrics()
+    const prismaWithMetrics = prisma as unknown as {
+      $metrics?: () => Promise<{
+        pools?: Array<{ connections?: number; maxConnections?: number }>
+        queries?: { active?: number }
+      }>
+    }
+
+    if (prismaWithMetrics.$metrics && typeof prismaWithMetrics.$metrics === 'function') {
+      const metrics = await prismaWithMetrics.$metrics()
       return {
         connections: metrics.pools?.[0]?.connections,
         poolSize: metrics.pools?.[0]?.maxConnections,
         activeQueries: metrics.queries?.active,
       }
     }
-    
+
     return null
   } catch (error) {
     // Metrics might not be available or enabled
@@ -45,18 +52,18 @@ export async function checkDatabaseHealth(): Promise<{
   error?: string
 }> {
   const startTime = Date.now()
-  
+
   try {
     await prisma.$queryRaw`SELECT 1`
     const latency = Date.now() - startTime
-    
+
     // Log slow database queries
     if (latency > 500) {
       logWarn('[DB SLOW] Database query took', latency, 'ms')
     }
-    
+
     logPerformance('db_query_latency', latency)
-    
+
     return {
       healthy: true,
       latency,
@@ -64,9 +71,9 @@ export async function checkDatabaseHealth(): Promise<{
   } catch (error) {
     const latency = Date.now() - startTime
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-    
+
     logError('[DB HEALTH] Database health check failed', error)
-    
+
     return {
       healthy: false,
       latency,
@@ -85,7 +92,7 @@ export function getMemoryUsage(): {
   external: number // Memory used by C++ objects
 } {
   const usage = process.memoryUsage()
-  
+
   // Convert to MB for readability
   return {
     rss: Math.round(usage.rss / 1024 / 1024),
@@ -102,9 +109,9 @@ export function checkMemoryUsage(threshold: number = 80): void {
   const usage = getMemoryUsage()
   const maxHeap = process.env.NODE_OPTIONS?.match(/max-old-space-size=(\d+)/)?.[1]
   const maxHeapMB = maxHeap ? parseInt(maxHeap, 10) : 512 // Default 512MB
-  
+
   const heapPercent = (usage.heapUsed / maxHeapMB) * 100
-  
+
   if (heapPercent > threshold) {
     logWarn('[MEMORY] High memory usage', {
       heapUsed: `${usage.heapUsed}MB`,
@@ -113,7 +120,7 @@ export function checkMemoryUsage(threshold: number = 80): void {
       rss: `${usage.rss}MB`,
     })
   }
-  
+
   // Always log in development
   if (process.env.NODE_ENV === 'development') {
     logPerformance('memory_heap_used', usage.heapUsed, 'MB')
@@ -138,9 +145,9 @@ export async function getHealthMetrics(): Promise<{
     checkDatabaseHealth(),
     getPrismaMetrics(),
   ])
-  
+
   const memory = getMemoryUsage()
-  
+
   // Determine overall status
   let status: 'healthy' | 'degraded' | 'unhealthy' = 'healthy'
   if (!dbHealth.healthy) {
@@ -148,7 +155,7 @@ export async function getHealthMetrics(): Promise<{
   } else if (dbHealth.latency && dbHealth.latency > 1000) {
     status = 'degraded'
   }
-  
+
   return {
     status,
     timestamp: new Date().toISOString(),

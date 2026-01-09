@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import { Plus, Edit2, Trash2, Upload, X, Image as ImageIcon, PlusCircle, Check } from "lucide-react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
@@ -68,9 +68,9 @@ export default function ProductsPage() {
     useEffect(() => {
         fetchProducts(1)
         fetchCategories()
-    }, [])
+    }, [fetchProducts, fetchCategories])
 
-    const fetchProducts = async (page: number = 1) => {
+    const fetchProducts = useCallback(async (page: number = 1) => {
         try {
             setLoading(true)
             const data = await apiGet<{ products: Product[], pagination: typeof pagination }>(`/api/admin/products?page=${page}&limit=50`)
@@ -82,12 +82,10 @@ export default function ProductsPage() {
             const errorMessage = handleApiError(error)
             logError("Failed to fetch products:", errorMessage)
             alert(errorMessage)
-        } finally {
-            setLoading(false)
         }
-    }
+    }, [])
 
-    const fetchCategories = async () => {
+    const fetchCategories = useCallback(async () => {
         try {
             const data = await apiGet<{ categories: Category[] }>("/api/admin/categories")
             setCategories(data.categories ?? [])
@@ -95,7 +93,7 @@ export default function ProductsPage() {
             const errorMessage = handleApiError(error)
             logError("Failed to fetch categories:", errorMessage)
         }
-    }
+    }, [])
 
     const handleImageUpload = async (file: File) => {
         setUploading(true)
@@ -590,7 +588,7 @@ export default function ProductsPage() {
                 <div className="flex items-center justify-between px-4 py-3 bg-card border border-border rounded-2xl">
                     <div className="text-sm text-muted-foreground">
                         {pagination.total} ta mahsulotdan {(pagination.page - 1) * pagination.limit + 1}-
-                        {Math.min(pagination.page * pagination.limit, pagination.total)} tasi ko'rsatilmoqda
+                        {Math.min(pagination.page * pagination.limit, pagination.total)} tasi ko&apos;rsatilmoqda
                     </div>
                     <div className="flex items-center gap-2">
                         <Button

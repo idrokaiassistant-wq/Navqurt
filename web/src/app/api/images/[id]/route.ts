@@ -21,12 +21,9 @@ export async function GET(
             return notFoundResponse("Rasm topilmadi")
         }
 
-        // Convert base64 to data URL
-        const dataUrl = `data:${image.mimeType};base64,${image.data}`
-
         // Return as image
         const buffer = Buffer.from(image.data, 'base64')
-        
+
         return new NextResponse(buffer, {
             headers: {
                 'Content-Type': image.mimeType,

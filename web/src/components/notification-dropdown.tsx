@@ -39,7 +39,7 @@ export function NotificationDropdown({
     const [notifications, setNotifications] = useState<Notification[]>([])
     const [loading, setLoading] = useState(true)
     const [open, setOpen] = useState(false)
-    const { readNotificationIds, markNotificationAsRead, markAllNotificationsAsRead: markAllRead } = useStore()
+    const { readNotificationIds, markNotificationAsRead } = useStore()
 
     // Filter notifications based on read status from store
     const filteredNotifications = notifications.map(n => ({
@@ -157,7 +157,7 @@ export function NotificationDropdown({
                             onClick={markAllAsRead}
                             className="text-xs text-muted-foreground hover:text-foreground"
                         >
-                            Hammasini o'qilgan deb belgilash
+                            Hammasini o&apos;qilgan deb belgilash
                         </button>
                     )}
                 </DropdownMenuLabel>
@@ -168,7 +168,7 @@ export function NotificationDropdown({
                     </div>
                 ) : filteredNotifications.length === 0 ? (
                     <div className="p-4 text-center text-sm text-muted-foreground">
-                        Xabarnomalar yo'q
+                        Xabarnomalar yo&apos;q
                     </div>
                 ) : (
                     <div className="py-1">

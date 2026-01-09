@@ -10,13 +10,14 @@ interface CloudinaryDeleteResult {
 }
 
 // Check if Cloudinary is configured
-function isCloudinaryConfigured(): boolean {
+async function getCloudinaryInstance(): Promise<typeof import("cloudinary").v2 | null> {
     try {
-        const { getCloudinaryConfig } = require("@/lib/config")
-        getCloudinaryConfig()
-        return true
+        const config = await import("@/lib/config")
+        config.getCloudinaryConfig()
+        const cloudinaryModule = await import("@/lib/cloudinary")
+        return cloudinaryModule.default
     } catch {
-        return false
+        return null
     }
 }
 
@@ -32,10 +33,9 @@ export async function POST(request: NextRequest) {
         }
 
         // Try Cloudinary first if configured
-        if (isCloudinaryConfigured()) {
+        const cloudinary = await getCloudinaryInstance()
+        if (cloudinary) {
             try {
-                const cloudinary = require("@/lib/cloudinary").default
-
                 const result = await cloudinary.uploader.destroy(String(public_id)) as CloudinaryDeleteResult
 
                 if (result.result !== 'ok') {
@@ -57,4 +57,3 @@ export async function POST(request: NextRequest) {
         }
     })
 }
-

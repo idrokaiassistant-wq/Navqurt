@@ -186,7 +186,7 @@ export default function WarehousePage() {
                 // Reset form and close modal only after successful API call
                 setNewMovement({ itemId: '', amount: '', price: '', note: '' })
                 setIsAddMovementOpen(false)
-            } catch (error) {
+            } catch {
                 // Error is already handled in addMovement function
                 // Don't close modal if there's an error
             }
