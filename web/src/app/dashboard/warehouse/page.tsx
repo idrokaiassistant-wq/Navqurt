@@ -199,7 +199,7 @@ export default function WarehousePage() {
     }
 
     if (loading) {
-        return <div className="text-white">Yuklanmoqda...</div>
+        return <div className="text-foreground">Yuklanmoqda...</div>
     }
 
     return (
@@ -207,8 +207,8 @@ export default function WarehousePage() {
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                    <h1 className="text-xl md:text-2xl font-bold text-white">Omborxona</h1>
-                    <p className="text-slate-400 text-sm md:text-base">Mahsulot qoldiqlari va xarajatlarni boshqaring</p>
+                    <h1 className="text-xl md:text-2xl font-bold text-foreground">Omborxona</h1>
+                    <p className="text-muted-foreground text-sm md:text-base">Mahsulot qoldiqlari va xarajatlarni boshqaring</p>
                 </div>
                 <div className="flex gap-2 flex-wrap">
                     {/* Add Stock Item */}
@@ -220,7 +220,7 @@ export default function WarehousePage() {
                                 <span className="sm:hidden">Qo&apos;shish</span>
                             </Button>
                         </DialogTrigger>
-                        <DialogContent className="bg-slate-900 border-slate-800 text-white max-w-[95vw] sm:max-w-md mx-auto">
+                        <DialogContent className="max-w-[95vw] sm:max-w-md mx-auto">
                             <DialogHeader>
                                 <DialogTitle>Yangi mahsulot qo&apos;shish</DialogTitle>
                             </DialogHeader>
@@ -228,7 +228,6 @@ export default function WarehousePage() {
                                 <div>
                                     <Label>Nomi</Label>
                                     <Input
-                                        className="bg-slate-800 border-slate-700"
                                         value={newItem.name}
                                         onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
                                     />
@@ -238,7 +237,6 @@ export default function WarehousePage() {
                                         <Label>Miqdori</Label>
                                         <Input
                                             type="number"
-                                            className="bg-slate-800 border-slate-700"
                                             value={newItem.current}
                                             onChange={(e) => setNewItem({ ...newItem, current: e.target.value })}
                                         />
@@ -246,7 +244,7 @@ export default function WarehousePage() {
                                     <div>
                                         <Label>Birlik</Label>
                                         <select
-                                            className="w-full bg-slate-800 border border-slate-700 rounded-md p-2"
+                                            className="w-full bg-input border border-input rounded-md p-2 text-foreground"
                                             value={newItem.unit}
                                             onChange={(e) => setNewItem({ ...newItem, unit: e.target.value })}
                                         >
@@ -261,7 +259,6 @@ export default function WarehousePage() {
                                         <Label>Minimum</Label>
                                         <Input
                                             type="number"
-                                            className="bg-slate-800 border-slate-700"
                                             value={newItem.minRequired}
                                             onChange={(e) => setNewItem({ ...newItem, minRequired: e.target.value })}
                                         />
@@ -270,7 +267,6 @@ export default function WarehousePage() {
                                         <Label>Narx (1 birlik)</Label>
                                         <Input
                                             type="number"
-                                            className="bg-slate-800 border-slate-700"
                                             value={newItem.price}
                                             onChange={(e) => setNewItem({ ...newItem, price: e.target.value })}
                                         />
@@ -286,13 +282,13 @@ export default function WarehousePage() {
                     {/* Add Movement */}
                     <Dialog open={isAddMovementOpen} onOpenChange={setIsAddMovementOpen}>
                         <DialogTrigger asChild>
-                            <Button variant="outline" className="border-slate-700 text-white hover:bg-slate-800 text-sm px-3 py-2">
+                            <Button variant="outline" className="text-sm px-3 py-2">
                                 <TrendingUp className="h-4 w-4 sm:mr-2" />
                                 <span className="hidden sm:inline">Kirim/Chiqim</span>
                                 <span className="sm:hidden">Kirim</span>
                             </Button>
                         </DialogTrigger>
-                        <DialogContent className="bg-slate-900 border-slate-800 text-white max-w-[95vw] sm:max-w-md mx-auto">
+                        <DialogContent className="max-w-[95vw] sm:max-w-md mx-auto">
                             <DialogHeader>
                                 <DialogTitle>Kirim yoki Chiqim qo&apos;shish</DialogTitle>
                             </DialogHeader>
@@ -300,14 +296,14 @@ export default function WarehousePage() {
                                 <div className="flex gap-2">
                                     <Button
                                         onClick={() => setMovementType('in')}
-                                        className={movementType === 'in' ? 'bg-emerald-500' : 'bg-slate-700'}
+                                        className={movementType === 'in' ? 'bg-emerald-500' : 'bg-muted'}
                                     >
                                         <TrendingUp className="h-4 w-4 mr-2" />
                                         Kirim
                                     </Button>
                                     <Button
                                         onClick={() => setMovementType('out')}
-                                        className={movementType === 'out' ? 'bg-rose-500' : 'bg-slate-700'}
+                                        className={movementType === 'out' ? 'bg-rose-500' : 'bg-muted'}
                                     >
                                         <TrendingDown className="h-4 w-4 mr-2" />
                                         Chiqim
@@ -316,7 +312,7 @@ export default function WarehousePage() {
                                 <div>
                                     <Label>Mahsulot</Label>
                                     <select
-                                        className="w-full bg-slate-800 border border-slate-700 rounded-md p-2"
+                                        className="w-full bg-input border border-input rounded-md p-2 text-foreground"
                                         value={newMovement.itemId}
                                         onChange={(e) => setNewMovement({ ...newMovement, itemId: e.target.value })}
                                     >
@@ -332,7 +328,6 @@ export default function WarehousePage() {
                                     <Label>Miqdor</Label>
                                     <Input
                                         type="number"
-                                        className="bg-slate-800 border-slate-700"
                                         value={newMovement.amount}
                                         onChange={(e) => setNewMovement({ ...newMovement, amount: e.target.value })}
                                     />
@@ -342,7 +337,6 @@ export default function WarehousePage() {
                                         <Label>Narx (jami)</Label>
                                         <Input
                                             type="number"
-                                            className="bg-slate-800 border-slate-700"
                                             value={newMovement.price}
                                             onChange={(e) => setNewMovement({ ...newMovement, price: e.target.value })}
                                         />
@@ -351,7 +345,6 @@ export default function WarehousePage() {
                                 <div>
                                     <Label>Izoh</Label>
                                     <Input
-                                        className="bg-slate-800 border-slate-700"
                                         value={newMovement.note}
                                         onChange={(e) => setNewMovement({ ...newMovement, note: e.target.value })}
                                     />
@@ -369,46 +362,46 @@ export default function WarehousePage() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
                 <button
                     onClick={() => setIsAddMovementOpen(true)}
-                    className="bg-slate-900 border border-slate-800 rounded-2xl p-4 md:p-5 text-left hover:border-blue-500/50 transition-colors group"
+                    className="bg-card border border-border rounded-2xl p-4 md:p-5 text-left hover:border-blue-500/50 transition-colors group"
                 >
                     <div className="flex items-center justify-between mb-3">
                         <div className="bg-blue-500 p-2.5 md:p-3 rounded-xl">
-                            <Package className="h-4 w-4 md:h-5 md:w-5 text-white" />
+                            <Package className="h-4 w-4 md:h-5 md:w-5 text-foreground" />
                         </div>
-                        <Edit2 className="h-4 w-4 text-slate-500 group-hover:text-blue-400 transition-colors" />
+                        <Edit2 className="h-4 w-4 text-muted-foreground group-hover:text-blue-400 transition-colors" />
                     </div>
-                    <div className="text-xl md:text-2xl font-bold text-white">{totalStock} kg</div>
-                    <div className="text-slate-400 text-xs md:text-sm">Jami qurt qoldig&apos;i</div>
+                    <div className="text-xl md:text-2xl font-bold text-foreground">{totalStock} kg</div>
+                    <div className="text-muted-foreground text-xs md:text-sm">Jami qurt qoldig&apos;i</div>
                 </button>
 
-                <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 md:p-5">
+                <div className="bg-card border border-border rounded-2xl p-4 md:p-5">
                     <div className="flex items-center justify-between mb-3">
                         <div className="bg-emerald-500 p-2.5 md:p-3 rounded-xl">
-                            <TrendingUp className="h-4 w-4 md:h-5 md:w-5 text-white" />
+                            <TrendingUp className="h-4 w-4 md:h-5 md:w-5 text-foreground" />
                         </div>
                     </div>
-                    <div className="text-xl md:text-2xl font-bold text-white">{thisMonthIn} kg</div>
-                    <div className="text-slate-400 text-xs md:text-sm">Bu oy kirim</div>
+                    <div className="text-xl md:text-2xl font-bold text-foreground">{thisMonthIn} kg</div>
+                    <div className="text-muted-foreground text-xs md:text-sm">Bu oy kirim</div>
                 </div>
 
-                <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 md:p-5">
+                <div className="bg-card border border-border rounded-2xl p-4 md:p-5">
                     <div className="flex items-center justify-between mb-3">
                         <div className="bg-amber-500 p-2.5 md:p-3 rounded-xl">
-                            <TrendingDown className="h-4 w-4 md:h-5 md:w-5 text-white" />
+                            <TrendingDown className="h-4 w-4 md:h-5 md:w-5 text-foreground" />
                         </div>
                     </div>
-                    <div className="text-xl md:text-2xl font-bold text-white">{thisMonthOut} kg</div>
-                    <div className="text-slate-400 text-xs md:text-sm">Bu oy chiqim</div>
+                    <div className="text-xl md:text-2xl font-bold text-foreground">{thisMonthOut} kg</div>
+                    <div className="text-muted-foreground text-xs md:text-sm">Bu oy chiqim</div>
                 </div>
 
-                <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 md:p-5">
+                <div className="bg-card border border-border rounded-2xl p-4 md:p-5">
                     <div className="flex items-center justify-between mb-3">
                         <div className="bg-rose-500 p-2.5 md:p-3 rounded-xl">
                             <DollarSign className="h-4 w-4 md:h-5 md:w-5 text-white" />
                         </div>
                     </div>
-                    <div className="text-xl md:text-2xl font-bold text-white">{formatPrice(totalExpenses)}</div>
-                    <div className="text-slate-400 text-xs md:text-sm">Bu oy xarajat</div>
+                    <div className="text-xl md:text-2xl font-bold text-foreground">{formatPrice(totalExpenses)}</div>
+                    <div className="text-muted-foreground text-xs md:text-sm">Bu oy xarajat</div>
                 </div>
             </div>
 
@@ -421,38 +414,38 @@ export default function WarehousePage() {
             )}
 
             {/* Current Stock */}
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
-                <h2 className="text-xl font-bold text-white mb-4">Joriy qoldiq</h2>
+            <div className="bg-card border border-border rounded-2xl p-5">
+                <h2 className="text-xl font-bold text-foreground mb-4">Joriy qoldiq</h2>
                 <div className="overflow-x-auto">
                     <table className="w-full">
                         <thead>
-                            <tr className="border-b border-slate-800">
-                                <th className="text-left text-slate-400 font-medium px-4 py-3">Mahsulot</th>
-                                <th className="text-left text-slate-400 font-medium px-4 py-3">Qoldiq</th>
-                                <th className="text-left text-slate-400 font-medium px-4 py-3">Minimum</th>
-                                <th className="text-left text-slate-400 font-medium px-4 py-3">Narx</th>
-                                <th className="text-left text-slate-400 font-medium px-4 py-3">Yangilangan</th>
-                                <th className="text-left text-slate-400 font-medium px-4 py-3">Holat</th>
-                                <th className="text-right text-slate-400 font-medium px-4 py-3">Amallar</th>
+                            <tr className="border-b border-border">
+                                <th className="text-left text-muted-foreground font-medium px-4 py-3">Mahsulot</th>
+                                <th className="text-left text-muted-foreground font-medium px-4 py-3">Qoldiq</th>
+                                <th className="text-left text-muted-foreground font-medium px-4 py-3">Minimum</th>
+                                <th className="text-left text-muted-foreground font-medium px-4 py-3">Narx</th>
+                                <th className="text-left text-muted-foreground font-medium px-4 py-3">Yangilangan</th>
+                                <th className="text-left text-muted-foreground font-medium px-4 py-3">Holat</th>
+                                <th className="text-right text-muted-foreground font-medium px-4 py-3">Amallar</th>
                             </tr>
                         </thead>
                         <tbody>
                             {stockItems.map((item) => (
-                                <tr key={item.id} className="border-b border-slate-800 last:border-0">
+                                <tr key={item.id} className="border-b border-border last:border-0">
                                     <td className="px-4 py-3">
-                                        <span className="text-white font-medium">{item.name}</span>
+                                        <span className="text-foreground font-medium">{item.name}</span>
                                     </td>
                                     <td className="px-4 py-3">
-                                        <span className="text-white">{item.current} {item.unit}</span>
+                                        <span className="text-foreground">{item.current} {item.unit}</span>
                                     </td>
                                     <td className="px-4 py-3">
-                                        <span className="text-slate-400">{item.minRequired} {item.unit}</span>
+                                        <span className="text-muted-foreground">{item.minRequired} {item.unit}</span>
                                     </td>
                                     <td className="px-4 py-3">
-                                        <span className="text-white">{formatPrice(item.price)}</span>
+                                        <span className="text-foreground">{formatPrice(item.price)}</span>
                                     </td>
                                     <td className="px-4 py-3">
-                                        <span className="text-slate-400 text-sm">{timeAgo(item.updatedAt)}</span>
+                                        <span className="text-muted-foreground text-sm">{timeAgo(item.updatedAt)}</span>
                                     </td>
                                     <td className="px-4 py-3">
                                         <span className={`px-3 py-1 rounded-full text-xs ${item.current > item.minRequired
@@ -466,13 +459,13 @@ export default function WarehousePage() {
                                         <div className="flex items-center justify-end gap-2">
                                             <button
                                                 onClick={() => openEditModal(item)}
-                                                className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
+                                                className="p-2 text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition-colors"
                                             >
                                                 <Edit2 className="h-4 w-4" />
                                             </button>
                                             <button
                                                 onClick={() => deleteStockItem(item.id)}
-                                                className="p-2 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors"
+                                                className="p-2 text-muted-foreground hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors"
                                             >
                                                 <Trash2 className="h-4 w-4" />
                                             </button>
@@ -486,14 +479,14 @@ export default function WarehousePage() {
             </div>
 
             {/* Recent Movements */}
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
-                <h2 className="text-xl font-bold text-white mb-4">So&apos;nggi kirim-chiqim</h2>
+            <div className="bg-card border border-border rounded-2xl p-5">
+                <h2 className="text-xl font-bold text-foreground mb-4">So&apos;nggi kirim-chiqim</h2>
                 {movements.length === 0 ? (
-                    <p className="text-slate-400 text-center py-8">Hali kirim-chiqim yo&apos;q</p>
+                    <p className="text-muted-foreground text-center py-8">Hali kirim-chiqim yo&apos;q</p>
                 ) : (
                     <div className="space-y-3">
                         {movements.slice(0, 10).map((movement) => (
-                            <div key={movement.id} className="flex items-center justify-between py-3 border-b border-slate-800 last:border-0">
+                            <div key={movement.id} className="flex items-center justify-between py-3 border-b border-border last:border-0">
                                 <div className="flex items-center gap-3">
                                     <div className={`p-2 rounded-lg ${movement.type === "IN" ? "bg-emerald-500/20" : "bg-rose-500/20"}`}>
                                         {movement.type === "IN" ? (
@@ -503,10 +496,10 @@ export default function WarehousePage() {
                                         )}
                                     </div>
                                     <div>
-                                        <div className="text-white font-medium">
+                                        <div className="text-foreground font-medium">
                                             {movement.type === "IN" ? "Kirim" : "Chiqim"}: {movement.stockItem?.name || "Noma'lum"}
                                         </div>
-                                        <div className="text-slate-400 text-sm">{timeAgo(movement.date)}</div>
+                                        <div className="text-muted-foreground text-sm">{timeAgo(movement.date)}</div>
                                     </div>
                                 </div>
                                 <div className="text-right">
@@ -514,7 +507,7 @@ export default function WarehousePage() {
                                         {movement.type === "IN" ? "+" : "-"}{movement.amount} {movement.stockItem?.unit || ""}
                                     </div>
                                     {movement.price && (
-                                        <div className="text-slate-400 text-sm">{formatPrice(movement.price)}</div>
+                                        <div className="text-muted-foreground text-sm">{formatPrice(movement.price)}</div>
                                     )}
                                 </div>
                             </div>
@@ -525,7 +518,7 @@ export default function WarehousePage() {
 
             {/* Edit Item Modal */}
             <Dialog open={isEditItemOpen} onOpenChange={setIsEditItemOpen}>
-                <DialogContent className="bg-slate-900 border-slate-800 text-white max-w-[95vw] sm:max-w-md mx-auto">
+                <DialogContent className="max-w-[95vw] sm:max-w-md mx-auto">
                     <DialogHeader>
                         <DialogTitle>Mahsulotni tahrirlash</DialogTitle>
                     </DialogHeader>
@@ -534,7 +527,6 @@ export default function WarehousePage() {
                             <div>
                                 <Label>Nomi</Label>
                                 <Input
-                                    className="bg-slate-800 border-slate-700"
                                     value={selectedItem.name}
                                     onChange={(e) => setSelectedItem({ ...selectedItem, name: e.target.value })}
                                 />
@@ -544,7 +536,6 @@ export default function WarehousePage() {
                                     <Label>Miqdori</Label>
                                     <Input
                                         type="number"
-                                        className="bg-slate-800 border-slate-700"
                                         value={selectedItem.current}
                                         onChange={(e) => setSelectedItem({ ...selectedItem, current: Number(e.target.value) })}
                                     />
@@ -553,7 +544,6 @@ export default function WarehousePage() {
                                     <Label>Minimum</Label>
                                     <Input
                                         type="number"
-                                        className="bg-slate-800 border-slate-700"
                                         value={selectedItem.minRequired}
                                         onChange={(e) => setSelectedItem({ ...selectedItem, minRequired: Number(e.target.value) })}
                                     />
@@ -563,7 +553,6 @@ export default function WarehousePage() {
                                 <Label>Narx (1 birlik)</Label>
                                 <Input
                                     type="number"
-                                    className="bg-slate-800 border-slate-700"
                                     value={selectedItem.price}
                                     onChange={(e) => setSelectedItem({ ...selectedItem, price: Number(e.target.value) })}
                                 />

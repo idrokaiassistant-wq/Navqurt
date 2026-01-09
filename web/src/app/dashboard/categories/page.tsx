@@ -111,16 +111,16 @@ export default function CategoriesPage() {
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold text-white">Kategoriyalar</h1>
-                    <p className="text-slate-400">Mahsulot kategoriyalarini boshqaring</p>
+                    <h1 className="text-2xl font-bold text-foreground">Kategoriyalar</h1>
+                    <p className="text-muted-foreground">Mahsulot kategoriyalarini boshqaring</p>
                 </div>
                 <div className="flex items-center gap-3">
                     <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <input
                             type="text"
                             placeholder="Qidirish..."
-                            className="bg-slate-800 border border-slate-700 rounded-xl py-2 pl-10 pr-4 text-white placeholder-slate-400 focus:outline-none focus:border-blue-500"
+                            className="bg-input border border-input rounded-xl py-2 pl-10 pr-4 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-blue-500"
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
                         />
@@ -133,7 +133,7 @@ export default function CategoriesPage() {
                                 Yangi kategoriya
                             </Button>
                         </DialogTrigger>
-                        <DialogContent className="bg-slate-900 border-slate-800 text-white">
+                        <DialogContent>
                             <DialogHeader>
                                 <DialogTitle>Yangi kategoriya</DialogTitle>
                             </DialogHeader>
@@ -141,7 +141,6 @@ export default function CategoriesPage() {
                                 <div>
                                     <Label>Nomi</Label>
                                     <Input
-                                        className="bg-slate-800 border-slate-700"
                                         value={newCategory.name}
                                         onChange={(e) => setNewCategory({ ...newCategory, name: e.target.value })}
                                     />
@@ -149,7 +148,6 @@ export default function CategoriesPage() {
                                 <div>
                                     <Label>Rang class (ixtiyoriy)</Label>
                                     <Input
-                                        className="bg-slate-800 border-slate-700"
                                         placeholder="masalan: bg-blue-500"
                                         value={newCategory.color}
                                         onChange={(e) => setNewCategory({ ...newCategory, color: e.target.value })}
@@ -166,43 +164,43 @@ export default function CategoriesPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {error && (
-                    <div className="bg-slate-900 border border-rose-500/30 rounded-2xl p-5 text-rose-400 col-span-full">
+                    <div className="bg-card border border-rose-500/30 rounded-2xl p-5 text-rose-400 col-span-full">
                         {error}
                     </div>
                 )}
                 {loading && !error && (
-                    <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 text-slate-400 col-span-full">
+                    <div className="bg-card border border-border rounded-2xl p-5 text-muted-foreground col-span-full">
                         Yuklanmoqda...
                     </div>
                 )}
                 {!loading && !error && filtered.length === 0 && (
-                    <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 text-slate-400 col-span-full">
+                    <div className="bg-card border border-border rounded-2xl p-5 text-muted-foreground col-span-full">
                         Kategoriya topilmadi
                     </div>
                 )}
                 {filtered.map((cat) => (
-                    <div key={cat.id} className="bg-slate-900 border border-slate-800 rounded-2xl p-5 hover:border-slate-700 transition-colors">
+                    <div key={cat.id} className="bg-card border border-border rounded-2xl p-5 hover:border-input transition-colors">
                         <div className="flex items-center justify-between mb-4">
                             <div className="flex items-center gap-4">
-                                <div className={`w-12 h-12 ${cat.color ?? "bg-slate-700"} rounded-xl flex items-center justify-center`}>
-                                    <span className="text-white text-xl">📁</span>
+                                <div className={`w-12 h-12 ${cat.color ?? "bg-muted"} rounded-xl flex items-center justify-center`}>
+                                    <span className="text-foreground text-xl">📁</span>
                                 </div>
                                 <div>
-                                    <h3 className="text-lg font-semibold text-white">{cat.name}</h3>
-                                    <p className="text-slate-400 text-sm">
+                                    <h3 className="text-lg font-semibold text-foreground">{cat.name}</h3>
+                                    <p className="text-muted-foreground text-sm">
                                         {cat._count?.products ?? 0} ta mahsulot
                                     </p>
                                 </div>
                             </div>
                             <div className="flex items-center gap-1">
                                 <button
-                                    className="p-2 text-slate-400 hover:text-blue-400 hover:bg-blue-500/10 rounded-lg transition-colors"
+                                    className="p-2 text-muted-foreground hover:text-blue-400 hover:bg-blue-500/10 rounded-lg transition-colors"
                                     onClick={() => openEditModal(cat)}
                                 >
                                     <Edit2 className="h-4 w-4" />
                                 </button>
                                 <button
-                                    className="p-2 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors"
+                                    className="p-2 text-muted-foreground hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors"
                                     onClick={async () => {
                                         if (!confirm(`"${cat.name}" kategoriyasini o'chirmoqchimisiz?`)) return
                                         try {
@@ -218,9 +216,9 @@ export default function CategoriesPage() {
                                 </button>
                             </div>
                         </div>
-                        <div className="flex items-center justify-between pt-4 border-t border-slate-800">
-                            <span className="text-slate-400">Yaratilgan</span>
-                            <span className="text-white font-semibold">{new Date(cat.createdAt).toLocaleDateString("uz-UZ")}</span>
+                        <div className="flex items-center justify-between pt-4 border-t border-border">
+                            <span className="text-muted-foreground">Yaratilgan</span>
+                            <span className="text-foreground font-semibold">{new Date(cat.createdAt).toLocaleDateString("uz-UZ")}</span>
                         </div>
                     </div>
                 ))}
@@ -228,8 +226,8 @@ export default function CategoriesPage() {
 
             {/* Pagination */}
             {!loading && !error && pagination.totalPages > 1 && (
-                <div className="flex items-center justify-between px-4 py-3 bg-slate-900 border border-slate-800 rounded-2xl">
-                    <div className="text-sm text-slate-400">
+                <div className="flex items-center justify-between px-4 py-3 bg-card border border-border rounded-2xl">
+                    <div className="text-sm text-muted-foreground">
                         {pagination.total} ta kategoriyadan {(pagination.page - 1) * pagination.limit + 1}-
                         {Math.min(pagination.page * pagination.limit, pagination.total)} tasi ko'rsatilmoqda
                     </div>
@@ -238,18 +236,16 @@ export default function CategoriesPage() {
                             variant="outline"
                             onClick={() => load(pagination.page - 1)}
                             disabled={!pagination.hasPreviousPage}
-                            className="bg-slate-800 border-slate-700 text-white hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             Oldingi
                         </Button>
-                        <span className="text-sm text-slate-400 px-3">
+                        <span className="text-sm text-muted-foreground px-3">
                             {pagination.page} / {pagination.totalPages}
                         </span>
                         <Button
                             variant="outline"
                             onClick={() => load(pagination.page + 1)}
                             disabled={!pagination.hasNextPage}
-                            className="bg-slate-800 border-slate-700 text-white hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             Keyingi
                         </Button>
@@ -259,7 +255,7 @@ export default function CategoriesPage() {
 
             {/* Edit Modal */}
             <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-                <DialogContent className="bg-slate-900 border-slate-800 text-white">
+                <DialogContent>
                     <DialogHeader>
                         <DialogTitle>Kategoriyani tahrirlash</DialogTitle>
                     </DialogHeader>
@@ -267,7 +263,6 @@ export default function CategoriesPage() {
                         <div>
                             <Label>Nomi</Label>
                             <Input
-                                className="bg-slate-800 border-slate-700"
                                 value={editForm.name}
                                 onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
                             />
@@ -275,7 +270,6 @@ export default function CategoriesPage() {
                         <div>
                             <Label>Rang class (ixtiyoriy)</Label>
                             <Input
-                                className="bg-slate-800 border-slate-700"
                                 placeholder="masalan: bg-blue-500"
                                 value={editForm.color}
                                 onChange={(e) => setEditForm({ ...editForm, color: e.target.value })}

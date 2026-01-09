@@ -284,7 +284,7 @@ export default function ProductsPage() {
     }
 
     if (loading) {
-        return <div className="text-white">Yuklanmoqda...</div>
+        return <div className="text-foreground">Yuklanmoqda...</div>
     }
 
     // ProductForm JSX - inline render qilamiz fokus yo'qolmasligi uchun
@@ -295,7 +295,7 @@ export default function ProductsPage() {
                 <Label>Mahsulot rasmi</Label>
                 <div className="mt-2">
                     {formData.image ? (
-                        <div className="relative w-full h-40 bg-slate-800 rounded-xl overflow-hidden">
+                        <div className="relative w-full h-40 bg-secondary rounded-xl overflow-hidden">
                             <Image
                                 src={formData.image}
                                 alt="Product"
@@ -311,7 +311,7 @@ export default function ProductsPage() {
                             </button>
                         </div>
                     ) : (
-                        <label className="flex flex-col items-center justify-center w-full h-40 bg-slate-800 border-2 border-dashed border-slate-600 rounded-xl cursor-pointer hover:border-blue-500 transition-colors">
+                        <label className="flex flex-col items-center justify-center w-full h-40 bg-secondary border-2 border-dashed border-input rounded-xl cursor-pointer hover:border-blue-500 transition-colors">
                             <input
                                 ref={fileInputRef}
                                 type="file"
@@ -323,12 +323,12 @@ export default function ProductsPage() {
                                 }}
                             />
                             {uploading ? (
-                                <div className="text-slate-400">Yuklanmoqda...</div>
+                                <div className="text-muted-foreground">Yuklanmoqda...</div>
                             ) : (
                                 <>
-                                    <Upload className="h-8 w-8 text-slate-400 mb-2" />
-                                    <span className="text-slate-400 text-sm">Rasm yuklash uchun bosing</span>
-                                    <span className="text-slate-500 text-xs mt-1">Ma&apos;lumotlar bazasida (DB) doimiy saqlanadi</span>
+                                    <Upload className="h-8 w-8 text-muted-foreground mb-2" />
+                                    <span className="text-muted-foreground text-sm">Rasm yuklash uchun bosing</span>
+                                    <span className="text-muted-foreground/70 text-xs mt-1">Ma&apos;lumotlar bazasida (DB) doimiy saqlanadi</span>
                                 </>
                             )}
                         </label>
@@ -339,7 +339,6 @@ export default function ProductsPage() {
             <div>
                 <Label>Nomi</Label>
                 <Input
-                    className="bg-slate-800 border-slate-700"
                     value={formData.name}
                     onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
                     autoComplete="off"
@@ -348,7 +347,6 @@ export default function ProductsPage() {
             <div>
                 <Label>Tavsif</Label>
                 <Input
-                    className="bg-slate-800 border-slate-700"
                     value={formData.description}
                     onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
                     autoComplete="off"
@@ -359,7 +357,6 @@ export default function ProductsPage() {
                     <Label>Narx (so&apos;m)</Label>
                     <Input
                         type="number"
-                        className="bg-slate-800 border-slate-700"
                         value={formData.price}
                         onChange={(e) => setFormData(prev => ({ ...prev, price: e.target.value }))}
                         autoComplete="off"
@@ -369,7 +366,6 @@ export default function ProductsPage() {
                     <Label>Og&apos;irlik (g)</Label>
                     <Input
                         type="number"
-                        className="bg-slate-800 border-slate-700"
                         value={formData.weight}
                         onChange={(e) => setFormData(prev => ({ ...prev, weight: e.target.value }))}
                         autoComplete="off"
@@ -386,25 +382,25 @@ export default function ProductsPage() {
                             onClick={() => toggleCategory(cat.id)}
                             className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${formData.categoryIds.includes(cat.id)
                                 ? "bg-blue-500 text-white"
-                                : "bg-slate-700 text-slate-300 hover:bg-slate-600"
+                                : "bg-muted text-muted-foreground hover:bg-accent"
                                 }`}
                         >
                             {cat.name}
                         </button>
                     ))}
                     {categories.length === 0 && (
-                        <span className="text-slate-400 text-sm">Kategoriyalar mavjud emas</span>
+                        <span className="text-muted-foreground text-sm">Kategoriyalar mavjud emas</span>
                     )}
                 </div>
             </div>
 
             {/* Variants Section */}
-            <div className="border-t border-slate-800 pt-4">
+            <div className="border-t border-border pt-4">
                 <Label>Variantlar</Label>
                 <div className="mt-2 space-y-3">
                     {/* Existing Variants */}
                     {productVariants.map((variant) => (
-                        <div key={variant.id} className="flex items-center justify-between p-3 bg-slate-800 rounded-lg">
+                        <div key={variant.id} className="flex items-center justify-between p-3 bg-secondary rounded-lg">
                             <div className="flex items-center gap-3">
                                 <span className="text-white font-medium">{TASTE_TYPE_LABELS[variant.type] || variant.type}</span>
                                 <span className={`text-sm ${variant.priceDelta >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
@@ -416,7 +412,7 @@ export default function ProductsPage() {
                                     <>
                                         <Input
                                             type="number"
-                                            className="w-32 bg-slate-700 border-slate-600 text-white text-sm"
+                                            className="w-32 text-sm"
                                             value={editVariantPriceDelta}
                                             onChange={(e) => setEditVariantPriceDelta(e.target.value)}
                                             placeholder="Narx farqi"
@@ -432,7 +428,7 @@ export default function ProductsPage() {
                                                 setEditingVariant(null)
                                                 setEditVariantPriceDelta("")
                                             }}
-                                            className="p-1.5 bg-slate-600 text-white rounded hover:bg-slate-700"
+                                            className="p-1.5 bg-muted text-foreground rounded hover:bg-accent"
                                         >
                                             <X className="h-4 w-4" />
                                         </button>
@@ -463,9 +459,9 @@ export default function ProductsPage() {
                     ))}
 
                     {/* Add New Variant */}
-                    <div className="flex items-center gap-2 p-3 bg-slate-800 rounded-lg border border-slate-700 border-dashed">
+                    <div className="flex items-center gap-2 p-3 bg-secondary rounded-lg border border-input border-dashed">
                         <select
-                            className="flex-1 bg-slate-700 border border-slate-600 rounded px-3 py-2 text-white text-sm"
+                            className="flex-1 text-sm"
                             value={newVariant.type}
                             onChange={(e) => setNewVariant({ ...newVariant, type: e.target.value })}
                         >
@@ -476,7 +472,7 @@ export default function ProductsPage() {
                         </select>
                         <Input
                             type="number"
-                            className="w-32 bg-slate-700 border-slate-600 text-white text-sm"
+                            className="w-32 text-sm"
                             value={newVariant.priceDelta}
                             onChange={(e) => setNewVariant({ ...newVariant, priceDelta: e.target.value })}
                             placeholder="Narx farqi"
@@ -492,7 +488,7 @@ export default function ProductsPage() {
                     </div>
 
                     {productVariants.length === 0 && TASTE_TYPES.length === 0 && (
-                        <span className="text-slate-400 text-sm">Variantlar mavjud emas</span>
+                        <span className="text-muted-foreground text-sm">Variantlar mavjud emas</span>
                     )}
                 </div>
             </div>
@@ -503,8 +499,8 @@ export default function ProductsPage() {
         <div className="space-y-4 md:space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                    <h1 className="text-xl md:text-2xl font-bold text-white">Mahsulotlar</h1>
-                    <p className="text-slate-400 text-sm md:text-base">Barcha mahsulotlarni boshqaring</p>
+                    <h1 className="text-xl md:text-2xl font-bold text-foreground">Mahsulotlar</h1>
+                    <p className="text-muted-foreground text-sm md:text-base">Barcha mahsulotlarni boshqaring</p>
                 </div>
                 <div className="flex items-center gap-3">
                     <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
@@ -518,7 +514,7 @@ export default function ProductsPage() {
                                 <span className="sm:hidden">+</span>
                             </button>
                         </DialogTrigger>
-                        <DialogContent className="bg-slate-900 border-slate-800 text-white max-h-[90vh] overflow-y-auto max-w-[95vw] sm:max-w-md mx-auto">
+                        <DialogContent className="max-h-[90vh] overflow-y-auto max-w-[95vw] sm:max-w-md mx-auto">
                             <DialogHeader>
                                 <DialogTitle>Yangi mahsulot</DialogTitle>
                             </DialogHeader>
@@ -533,9 +529,9 @@ export default function ProductsPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {products.map((product) => (
-                    <div key={product.id} className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
+                    <div key={product.id} className="bg-card border border-border rounded-2xl overflow-hidden">
                         {/* Product Image */}
-                        <div className="relative w-full h-40 bg-slate-800">
+                        <div className="relative w-full h-40 bg-secondary">
                             {product.image && product.image.trim() !== "" ? (
                                 <Image
                                     src={product.image}
@@ -546,39 +542,39 @@ export default function ProductsPage() {
                                 />
                             ) : (
                                 <div className="w-full h-full flex items-center justify-center">
-                                    <ImageIcon className="h-12 w-12 text-slate-600" />
+                                    <ImageIcon className="h-12 w-12 text-muted-foreground" />
                                 </div>
                             )}
                         </div>
 
                         <div className="p-5">
                             <div className="flex items-start justify-between mb-2">
-                                <h3 className="text-lg font-semibold text-white">{product.name}</h3>
+                                <h3 className="text-lg font-semibold text-foreground">{product.name}</h3>
                                 <div className="flex items-center gap-1">
                                     <button
                                         onClick={() => openEditModal(product)}
-                                        className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
+                                        className="p-2 text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition-colors"
                                     >
                                         <Edit2 className="h-4 w-4" />
                                     </button>
                                     <button
                                         onClick={() => handleDelete(product.id)}
-                                        className="p-2 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors"
+                                        className="p-2 text-muted-foreground hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors"
                                     >
                                         <Trash2 className="h-4 w-4" />
                                     </button>
                                 </div>
                             </div>
-                            <p className="text-2xl font-bold text-white mb-2">
-                                {product.price.toLocaleString()} <span className="text-sm text-slate-400">so&apos;m</span>
+                            <p className="text-2xl font-bold text-foreground mb-2">
+                                {product.price.toLocaleString()} <span className="text-sm text-muted-foreground">so&apos;m</span>
                             </p>
-                            <div className="text-sm text-slate-400 mb-3">
-                                Og&apos;irlik: <span className="text-white">{product.weight}g</span>
+                            <div className="text-sm text-muted-foreground mb-3">
+                                Og&apos;irlik: <span className="text-foreground">{product.weight}g</span>
                             </div>
                             {product.categoryNames && product.categoryNames.length > 0 && (
                                 <div className="flex flex-wrap gap-1">
                                     {product.categoryNames.map((name, i) => (
-                                        <span key={i} className="px-2 py-0.5 bg-slate-700 rounded-lg text-xs text-slate-300">
+                                        <span key={i} className="px-2 py-0.5 bg-muted rounded-lg text-xs text-muted-foreground">
                                             {name}
                                         </span>
                                     ))}
@@ -591,8 +587,8 @@ export default function ProductsPage() {
 
             {/* Pagination */}
             {!loading && pagination.totalPages > 1 && (
-                <div className="flex items-center justify-between px-4 py-3 bg-slate-900 border border-slate-800 rounded-2xl">
-                    <div className="text-sm text-slate-400">
+                <div className="flex items-center justify-between px-4 py-3 bg-card border border-border rounded-2xl">
+                    <div className="text-sm text-muted-foreground">
                         {pagination.total} ta mahsulotdan {(pagination.page - 1) * pagination.limit + 1}-
                         {Math.min(pagination.page * pagination.limit, pagination.total)} tasi ko'rsatilmoqda
                     </div>
@@ -601,18 +597,16 @@ export default function ProductsPage() {
                             variant="outline"
                             onClick={() => fetchProducts(pagination.page - 1)}
                             disabled={!pagination.hasPreviousPage}
-                            className="bg-slate-800 border-slate-700 text-white hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             Oldingi
                         </Button>
-                        <span className="text-sm text-slate-400 px-3">
+                        <span className="text-sm text-muted-foreground px-3">
                             {pagination.page} / {pagination.totalPages}
                         </span>
                         <Button
                             variant="outline"
                             onClick={() => fetchProducts(pagination.page + 1)}
                             disabled={!pagination.hasNextPage}
-                            className="bg-slate-800 border-slate-700 text-white hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             Keyingi
                         </Button>
@@ -622,7 +616,7 @@ export default function ProductsPage() {
 
             {/* Edit Modal */}
             <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-                <DialogContent className="bg-slate-900 border-slate-800 text-white max-h-[90vh] overflow-y-auto max-w-[95vw] sm:max-w-md mx-auto">
+                <DialogContent className="max-h-[90vh] overflow-y-auto max-w-[95vw] sm:max-w-md mx-auto">
                     <DialogHeader>
                         <DialogTitle>Mahsulotni tahrirlash</DialogTitle>
                     </DialogHeader>

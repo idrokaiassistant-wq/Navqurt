@@ -157,8 +157,8 @@ export default function SettingsPage() {
     return (
         <div className="space-y-6">
             <div>
-                <h1 className="text-2xl font-bold text-white">Sozlamalar</h1>
-                <p className="text-slate-400">Tizim sozlamalarini boshqaring</p>
+                <h1 className="text-2xl font-bold text-foreground">Sozlamalar</h1>
+                <p className="text-muted-foreground">Tizim sozlamalarini boshqaring</p>
             </div>
 
             {/* Success/Error Messages */}
@@ -176,7 +176,7 @@ export default function SettingsPage() {
             )}
 
             {/* Tabs */}
-            <div className="flex gap-2 border-b border-slate-800 pb-4">
+            <div className="flex gap-2 border-b border-border pb-4">
                 {[
                     { id: "profile", label: "Profil", icon: User },
                     { id: "security", label: "Xavfsizlik", icon: Lock },
@@ -193,8 +193,8 @@ export default function SettingsPage() {
                                 setErrorMessage("")
                             }}
                             className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-colors ${activeTab === tab.id
-                                ? "bg-slate-800 text-white"
-                                : "text-slate-400 hover:text-white"
+                                ? "bg-accent text-accent-foreground"
+                                : "text-muted-foreground hover:text-foreground"
                                 }`}
                         >
                             <Icon className="h-4 w-4" />
@@ -205,30 +205,30 @@ export default function SettingsPage() {
             </div>
 
             {/* Content */}
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+            <div className="bg-card border border-border rounded-2xl p-6">
                 {activeTab === "profile" && (
                     <div className="space-y-6">
-                        <h3 className="text-lg font-semibold text-white">Profil ma&apos;lumotlari</h3>
+                        <h3 className="text-lg font-semibold text-foreground">Profil ma&apos;lumotlari</h3>
                         {profileLoading ? (
-                            <p className="text-slate-400">Yuklanmoqda...</p>
+                            <p className="text-muted-foreground">Yuklanmoqda...</p>
                         ) : (
                             <div className="grid gap-4">
                                 <div>
-                                    <label className="block text-sm text-slate-400 mb-2">Ism</label>
+                                    <label className="block text-sm text-muted-foreground mb-2">Ism</label>
                                     <input
                                         type="text"
                                         value={profileForm.name}
                                         onChange={(e) => setProfileForm({ ...profileForm, name: e.target.value })}
-                                        className="w-full bg-slate-800 border border-slate-700 rounded-xl py-3 px-4 text-white focus:outline-none focus:border-blue-500"
+                                        className="w-full bg-input border border-input rounded-xl py-3 px-4 text-foreground focus:outline-none focus:border-blue-500"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm text-slate-400 mb-2">Email</label>
+                                    <label className="block text-sm text-muted-foreground mb-2">Email</label>
                                     <input
                                         type="email"
                                         value={profileForm.email}
                                         onChange={(e) => setProfileForm({ ...profileForm, email: e.target.value })}
-                                        className="w-full bg-slate-800 border border-slate-700 rounded-xl py-3 px-4 text-white focus:outline-none focus:border-blue-500"
+                                        className="w-full bg-input border border-input rounded-xl py-3 px-4 text-foreground focus:outline-none focus:border-blue-500"
                                     />
                                 </div>
                                 <button
@@ -245,33 +245,33 @@ export default function SettingsPage() {
 
                 {activeTab === "security" && (
                     <div className="space-y-6">
-                        <h3 className="text-lg font-semibold text-white">Parolni o&apos;zgartirish</h3>
+                        <h3 className="text-lg font-semibold text-foreground">Parolni o&apos;zgartirish</h3>
                         <div className="grid gap-4">
                             <div>
-                                <label className="block text-sm text-slate-400 mb-2">Joriy parol</label>
+                                <label className="block text-sm text-muted-foreground mb-2">Joriy parol</label>
                                 <input
                                     type="password"
                                     value={securityForm.currentPassword}
                                     onChange={(e) => setSecurityForm({ ...securityForm, currentPassword: e.target.value })}
-                                    className="w-full bg-slate-800 border border-slate-700 rounded-xl py-3 px-4 text-white focus:outline-none focus:border-blue-500"
+                                    className="w-full bg-input border border-input rounded-xl py-3 px-4 text-foreground focus:outline-none focus:border-blue-500"
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm text-slate-400 mb-2">Yangi parol</label>
+                                <label className="block text-sm text-muted-foreground mb-2">Yangi parol</label>
                                 <input
                                     type="password"
                                     value={securityForm.newPassword}
                                     onChange={(e) => setSecurityForm({ ...securityForm, newPassword: e.target.value })}
-                                    className="w-full bg-slate-800 border border-slate-700 rounded-xl py-3 px-4 text-white focus:outline-none focus:border-blue-500"
+                                    className="w-full bg-input border border-input rounded-xl py-3 px-4 text-foreground focus:outline-none focus:border-blue-500"
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm text-slate-400 mb-2">Yangi parolni tasdiqlang</label>
+                                <label className="block text-sm text-muted-foreground mb-2">Yangi parolni tasdiqlang</label>
                                 <input
                                     type="password"
                                     value={securityForm.confirmPassword}
                                     onChange={(e) => setSecurityForm({ ...securityForm, confirmPassword: e.target.value })}
-                                    className="w-full bg-slate-800 border border-slate-700 rounded-xl py-3 px-4 text-white focus:outline-none focus:border-blue-500"
+                                    className="w-full bg-input border border-input rounded-xl py-3 px-4 text-foreground focus:outline-none focus:border-blue-500"
                                 />
                             </div>
                             <button
@@ -287,18 +287,18 @@ export default function SettingsPage() {
 
                 {activeTab === "notifications" && (
                     <div className="space-y-4">
-                        <h3 className="text-lg font-semibold text-white">Bildirishnoma sozlamalari</h3>
+                        <h3 className="text-lg font-semibold text-foreground">Bildirishnoma sozlamalari</h3>
                         {[
                             { key: "newOrders" as const, label: "Yangi buyurtmalar" },
                             { key: "deliveredOrders" as const, label: "Yetkazilgan buyurtmalar" },
                             { key: "newCustomers" as const, label: "Yangi mijozlar" },
                             { key: "systemUpdates" as const, label: "Tizim yangilanishlari" },
                         ].map((item) => (
-                            <div key={item.key} className="flex items-center justify-between py-3 border-b border-slate-800 last:border-0">
-                                <span className="text-white">{item.label}</span>
+                            <div key={item.key} className="flex items-center justify-between py-3 border-b border-border last:border-0">
+                                <span className="text-foreground">{item.label}</span>
                                 <button
                                     onClick={() => toggleNotification(item.key)}
-                                    className={`w-12 h-6 rounded-full transition-colors ${notifications[item.key] ? "bg-blue-500" : "bg-slate-700"}`}
+                                    className={`w-12 h-6 rounded-full transition-colors ${notifications[item.key] ? "bg-blue-500" : "bg-muted"}`}
                                 >
                                     <div className={`w-5 h-5 bg-white rounded-full transition-transform ${notifications[item.key] ? "translate-x-6" : "translate-x-0.5"}`} />
                                 </button>
@@ -309,13 +309,13 @@ export default function SettingsPage() {
 
                 {activeTab === "appearance" && (
                     <div className="space-y-6">
-                        <h3 className="text-lg font-semibold text-white">Ko&apos;rinish sozlamalari</h3>
+                        <h3 className="text-lg font-semibold text-foreground">Ko&apos;rinish sozlamalari</h3>
 
                         {/* Logo Upload */}
                         <div className="space-y-3">
-                            <label className="block text-sm text-slate-400">Tizim logosi</label>
+                            <label className="block text-sm text-muted-foreground">Tizim logosi</label>
                             <div className="flex items-center gap-4">
-                                <div className="w-16 h-16 rounded-full overflow-hidden bg-slate-800 flex-shrink-0">
+                                <div className="w-16 h-16 rounded-full overflow-hidden bg-secondary flex-shrink-0">
                                     <img
                                         src={logoUrl}
                                         alt="Logo"
@@ -330,21 +330,21 @@ export default function SettingsPage() {
                                             className="hidden"
                                             onChange={handleLogoUpload}
                                         />
-                                        <span className="inline-block bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded-xl transition-colors">
+                                        <span className="inline-block bg-secondary hover:bg-accent text-foreground px-4 py-2 rounded-xl transition-colors">
                                             {logoUploading ? "Yuklanmoqda..." : "Yangi logo yuklash"}
                                         </span>
                                     </label>
-                                    <p className="text-xs text-slate-500 mt-1">PNG, JPG yoki WebP (aylana shakl tavsiya etiladi)</p>
+                                    <p className="text-xs text-muted-foreground mt-1">PNG, JPG yoki WebP (aylana shakl tavsiya etiladi)</p>
                                 </div>
                             </div>
                         </div>
 
                         {/* Theme Toggle */}
-                        <div className="flex items-center justify-between py-3 border-t border-slate-800">
-                            <span className="text-white">Qorong&apos;u rejim</span>
+                        <div className="flex items-center justify-between py-3 border-t border-border">
+                            <span className="text-foreground">Qorong&apos;u rejim</span>
                             <button
                                 onClick={toggleTheme}
-                                className={`w-12 h-6 rounded-full transition-colors ${theme === "dark" ? "bg-blue-500" : "bg-slate-700"}`}
+                                className={`w-12 h-6 rounded-full transition-colors ${theme === "dark" ? "bg-blue-500" : "bg-muted"}`}
                             >
                                 <div className={`w-5 h-5 bg-white rounded-full transition-transform ${theme === "dark" ? "translate-x-6" : "translate-x-0.5"}`} />
                             </button>

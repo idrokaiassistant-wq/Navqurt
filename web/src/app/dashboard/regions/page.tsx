@@ -138,16 +138,16 @@ export default function RegionsPage() {
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold text-white">Regionlar</h1>
-                    <p className="text-slate-400">Yetkazib berish regionlarini boshqaring</p>
+                    <h1 className="text-2xl font-bold text-foreground">Regionlar</h1>
+                    <p className="text-muted-foreground">Yetkazib berish regionlarini boshqaring</p>
                 </div>
                 <div className="flex items-center gap-3">
                     <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <input
                             type="text"
                             placeholder="Qidirish..."
-                            className="bg-slate-800 border border-slate-700 rounded-xl py-2 pl-10 pr-4 text-white placeholder-slate-400 focus:outline-none focus:border-blue-500"
+                            className="bg-input border border-input rounded-xl py-2 pl-10 pr-4 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-blue-500"
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
                         />
@@ -160,7 +160,7 @@ export default function RegionsPage() {
                                 Yangi region
                             </Button>
                         </DialogTrigger>
-                        <DialogContent className="bg-slate-900 border-slate-800 text-white">
+                        <DialogContent>
                             <DialogHeader>
                                 <DialogTitle>Yangi region</DialogTitle>
                             </DialogHeader>
@@ -168,7 +168,6 @@ export default function RegionsPage() {
                                 <div>
                                     <Label>Nomi *</Label>
                                     <Input
-                                        className="bg-slate-800 border-slate-700"
                                         value={newRegion.name}
                                         onChange={(e) => setNewRegion({ ...newRegion, name: e.target.value })}
                                     />
@@ -177,7 +176,6 @@ export default function RegionsPage() {
                                     <Label>Yetkazib berish narxi (so&apos;m) *</Label>
                                     <Input
                                         type="number"
-                                        className="bg-slate-800 border-slate-700"
                                         value={newRegion.deliveryPrice}
                                         onChange={(e) => setNewRegion({ ...newRegion, deliveryPrice: e.target.value })}
                                     />
@@ -186,12 +184,11 @@ export default function RegionsPage() {
                                     <Label>Minimal bepul yetkazib berish (so&apos;m) - ixtiyoriy</Label>
                                     <Input
                                         type="number"
-                                        className="bg-slate-800 border-slate-700"
                                         placeholder="Masalan: 50000"
                                         value={newRegion.minFreeDelivery}
                                         onChange={(e) => setNewRegion({ ...newRegion, minFreeDelivery: e.target.value })}
                                     />
-                                    <p className="text-xs text-slate-400 mt-1">Agar bo&apos;sh qoldirilsa, bepul yetkazib berish bo&apos;lmaydi</p>
+                                    <p className="text-xs text-muted-foreground mt-1">Agar bo&apos;sh qoldirilsa, bepul yetkazib berish bo&apos;lmaydi</p>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <input
@@ -199,7 +196,7 @@ export default function RegionsPage() {
                                         id="isActiveNew"
                                         checked={newRegion.isActive}
                                         onChange={(e) => setNewRegion({ ...newRegion, isActive: e.target.checked })}
-                                        className="w-4 h-4 rounded border-slate-700 bg-slate-800"
+                                        className="w-4 h-4 rounded border-input bg-input"
                                     />
                                     <Label htmlFor="isActiveNew" className="cursor-pointer">Faol</Label>
                                 </div>
@@ -213,47 +210,47 @@ export default function RegionsPage() {
             </div>
 
             {error && (
-                <div className="bg-slate-900 border border-rose-500/30 rounded-2xl p-5 text-rose-400">
+                <div className="bg-card border border-rose-500/30 rounded-2xl p-5 text-rose-400">
                     {error}
                 </div>
             )}
 
             {loading && !error && (
-                <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 text-slate-400">
+                <div className="bg-card border border-border rounded-2xl p-5 text-muted-foreground">
                     Yuklanmoqda...
                 </div>
             )}
 
             {!loading && !error && filtered.length === 0 && (
-                <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 text-slate-400">
+                <div className="bg-card border border-border rounded-2xl p-5 text-muted-foreground">
                     Region topilmadi
                 </div>
             )}
 
             {!loading && !error && filtered.length > 0 && (
-                <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
+                <div className="bg-card border border-border rounded-2xl overflow-hidden">
                     <div className="overflow-x-auto">
                         <table className="w-full">
                             <thead>
-                                <tr className="border-b border-slate-800">
-                                    <th className="text-left text-slate-400 font-medium px-5 py-4">Region</th>
-                                    <th className="text-left text-slate-400 font-medium px-5 py-4">Yetkazib berish narxi</th>
-                                    <th className="text-left text-slate-400 font-medium px-5 py-4">Minimal bepul yetkazib berish</th>
-                                    <th className="text-left text-slate-400 font-medium px-5 py-4">Holat</th>
-                                    <th className="text-right text-slate-400 font-medium px-5 py-4">Amallar</th>
+                                <tr className="border-b border-border">
+                                    <th className="text-left text-muted-foreground font-medium px-5 py-4">Region</th>
+                                    <th className="text-left text-muted-foreground font-medium px-5 py-4">Yetkazib berish narxi</th>
+                                    <th className="text-left text-muted-foreground font-medium px-5 py-4">Minimal bepul yetkazib berish</th>
+                                    <th className="text-left text-muted-foreground font-medium px-5 py-4">Holat</th>
+                                    <th className="text-right text-muted-foreground font-medium px-5 py-4">Amallar</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {filtered.map((region) => (
-                                    <tr key={region.id} className="border-b border-slate-800 last:border-0 hover:bg-slate-800/50 transition-colors">
+                                    <tr key={region.id} className="border-b border-border last:border-0 hover:bg-accent transition-colors">
                                         <td className="px-5 py-4">
-                                            <div className="text-white font-medium">{region.name}</div>
+                                            <div className="text-foreground font-medium">{region.name}</div>
                                         </td>
                                         <td className="px-5 py-4">
-                                            <span className="text-white">{formatPrice(region.deliveryPrice)}</span>
+                                            <span className="text-foreground">{formatPrice(region.deliveryPrice)}</span>
                                         </td>
                                         <td className="px-5 py-4">
-                                            <span className="text-slate-400">
+                                            <span className="text-muted-foreground">
                                                 {region.minFreeDelivery ? formatPrice(region.minFreeDelivery) : "—"}
                                             </span>
                                         </td>
@@ -261,7 +258,7 @@ export default function RegionsPage() {
                                             <span className={`px-3 py-1 rounded-full text-xs ${
                                                 region.isActive 
                                                     ? "bg-emerald-500/20 text-emerald-400" 
-                                                    : "bg-slate-500/20 text-slate-400"
+                                                    : "bg-muted text-muted-foreground"
                                             }`}>
                                                 {region.isActive ? "Faol" : "Nofaol"}
                                             </span>
@@ -269,14 +266,14 @@ export default function RegionsPage() {
                                         <td className="px-5 py-4 text-right">
                                             <div className="flex items-center justify-end gap-2">
                                                 <button
-                                                    className="p-2 text-slate-400 hover:text-blue-400 hover:bg-blue-500/10 rounded-lg transition-colors"
+                                                    className="p-2 text-muted-foreground hover:text-blue-400 hover:bg-blue-500/10 rounded-lg transition-colors"
                                                     onClick={() => openEditModal(region)}
                                                     title="Tahrirlash"
                                                 >
                                                     <Edit2 className="h-4 w-4" />
                                                 </button>
                                                 <button
-                                                    className="p-2 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors"
+                                                    className="p-2 text-muted-foreground hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors"
                                                     onClick={() => handleDelete(region.id, region.name)}
                                                     title="O'chirish"
                                                 >
@@ -294,7 +291,7 @@ export default function RegionsPage() {
 
             {/* Edit Modal */}
             <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-                <DialogContent className="bg-slate-900 border-slate-800 text-white">
+                <DialogContent>
                     <DialogHeader>
                         <DialogTitle>Regionni tahrirlash</DialogTitle>
                     </DialogHeader>
@@ -302,7 +299,6 @@ export default function RegionsPage() {
                         <div>
                             <Label>Nomi *</Label>
                             <Input
-                                className="bg-slate-800 border-slate-700"
                                 value={editForm.name}
                                 onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
                             />
@@ -311,7 +307,6 @@ export default function RegionsPage() {
                             <Label>Yetkazib berish narxi (so&apos;m) *</Label>
                             <Input
                                 type="number"
-                                className="bg-slate-800 border-slate-700"
                                 value={editForm.deliveryPrice}
                                 onChange={(e) => setEditForm({ ...editForm, deliveryPrice: e.target.value })}
                             />
@@ -320,12 +315,11 @@ export default function RegionsPage() {
                             <Label>Minimal bepul yetkazib berish (so&apos;m) - ixtiyoriy</Label>
                             <Input
                                 type="number"
-                                className="bg-slate-800 border-slate-700"
                                 placeholder="Masalan: 50000"
                                 value={editForm.minFreeDelivery}
                                 onChange={(e) => setEditForm({ ...editForm, minFreeDelivery: e.target.value })}
                             />
-                            <p className="text-xs text-slate-400 mt-1">Agar bo&apos;sh qoldirilsa, bepul yetkazib berish bo&apos;lmaydi</p>
+                            <p className="text-xs text-muted-foreground mt-1">Agar bo&apos;sh qoldirilsa, bepul yetkazib berish bo&apos;lmaydi</p>
                         </div>
                         <div className="flex items-center gap-2">
                             <input
@@ -333,7 +327,7 @@ export default function RegionsPage() {
                                 id="isActiveEdit"
                                 checked={editForm.isActive}
                                 onChange={(e) => setEditForm({ ...editForm, isActive: e.target.checked })}
-                                className="w-4 h-4 rounded border-slate-700 bg-slate-800"
+                                className="w-4 h-4 rounded border-input bg-input"
                             />
                             <Label htmlFor="isActiveEdit" className="cursor-pointer">Faol</Label>
                         </div>

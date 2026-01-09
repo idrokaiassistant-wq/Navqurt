@@ -197,16 +197,16 @@ export default function CustomersPage() {
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold text-white">Mijozlar</h1>
-                    <p className="text-slate-400">Barcha mijozlarni ko&apos;ring</p>
+                    <h1 className="text-2xl font-bold text-foreground">Mijozlar</h1>
+                    <p className="text-muted-foreground">Barcha mijozlarni ko&apos;ring</p>
                 </div>
                 <div className="flex items-center gap-3">
                     <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <input
                             type="text"
                             placeholder="Mijoz qidirish... (ism/telefon/telegramId)"
-                            className="bg-slate-800 border border-slate-700 rounded-xl py-2 pl-10 pr-4 text-white placeholder-slate-400 focus:outline-none focus:border-blue-500"
+                            className="bg-input border border-input rounded-xl py-2 pl-10 pr-4 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-blue-500"
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
                         />
@@ -219,7 +219,7 @@ export default function CustomersPage() {
                                 Yangi mijoz
                             </Button>
                         </DialogTrigger>
-                        <DialogContent className="bg-slate-900 border-slate-800 text-white max-h-[90vh] overflow-y-auto">
+                        <DialogContent className="max-h-[90vh] overflow-y-auto">
                             <DialogHeader>
                                 <DialogTitle>Yangi mijoz</DialogTitle>
                             </DialogHeader>
@@ -227,7 +227,6 @@ export default function CustomersPage() {
                                 <div>
                                     <Label>Telegram ID *</Label>
                                     <Input
-                                        className="bg-slate-800 border-slate-700"
                                         placeholder="123456789"
                                         type="number"
                                         value={newCustomer.telegramId}
@@ -237,7 +236,6 @@ export default function CustomersPage() {
                                 <div>
                                     <Label>Ism</Label>
                                     <Input
-                                        className="bg-slate-800 border-slate-700"
                                         placeholder="To'liq ism"
                                         value={newCustomer.fullName}
                                         onChange={(e) => setNewCustomer({ ...newCustomer, fullName: e.target.value })}
@@ -246,7 +244,6 @@ export default function CustomersPage() {
                                 <div>
                                     <Label>Telefon</Label>
                                     <Input
-                                        className="bg-slate-800 border-slate-700"
                                         placeholder="+998901234567"
                                         value={newCustomer.phone}
                                         onChange={(e) => setNewCustomer({ ...newCustomer, phone: e.target.value })}
@@ -255,7 +252,7 @@ export default function CustomersPage() {
                                 <div>
                                     <Label>Region</Label>
                                     <select
-                                        className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500"
+                                        className="w-full bg-input border border-input rounded-lg px-3 py-2 text-foreground focus:outline-none focus:border-blue-500"
                                         value={newCustomer.regionId}
                                         onChange={(e) => setNewCustomer({ ...newCustomer, regionId: e.target.value })}
                                     >
@@ -270,7 +267,7 @@ export default function CustomersPage() {
                                 <div>
                                     <Label>Manzil</Label>
                                     <textarea
-                                        className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500 resize-none"
+                                        className="w-full bg-input border border-input rounded-lg px-3 py-2 text-foreground focus:outline-none focus:border-blue-500 resize-none"
                                         placeholder="To'liq manzil"
                                         rows={3}
                                         value={newCustomer.address}
@@ -286,16 +283,16 @@ export default function CustomersPage() {
                 </div>
             </div>
 
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
+            <div className="bg-card border border-border rounded-2xl overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full">
                         <thead>
-                            <tr className="border-b border-slate-800">
-                                <th className="text-left text-slate-400 font-medium px-5 py-4">Mijoz</th>
-                                <th className="text-left text-slate-400 font-medium px-5 py-4">Buyurtmalar</th>
-                                <th className="text-left text-slate-400 font-medium px-5 py-4">Jami xarid</th>
-                                <th className="text-left text-slate-400 font-medium px-5 py-4">Telegram ID</th>
-                                <th className="text-left text-slate-400 font-medium px-5 py-4">Amallar</th>
+                            <tr className="border-b border-border">
+                                <th className="text-left text-muted-foreground font-medium px-5 py-4">Mijoz</th>
+                                <th className="text-left text-muted-foreground font-medium px-5 py-4">Buyurtmalar</th>
+                                <th className="text-left text-muted-foreground font-medium px-5 py-4">Jami xarid</th>
+                                <th className="text-left text-muted-foreground font-medium px-5 py-4">Telegram ID</th>
+                                <th className="text-left text-muted-foreground font-medium px-5 py-4">Amallar</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -308,51 +305,51 @@ export default function CustomersPage() {
                             )}
                             {loading && !error && (
                                 <tr>
-                                    <td className="px-5 py-4 text-slate-400" colSpan={5}>
+                                    <td className="px-5 py-4 text-muted-foreground" colSpan={5}>
                                         Yuklanmoqda...
                                     </td>
                                 </tr>
                             )}
                             {!loading && !error && filtered.length === 0 && (
                                 <tr>
-                                    <td className="px-5 py-4 text-slate-400" colSpan={5}>
+                                    <td className="px-5 py-4 text-muted-foreground" colSpan={5}>
                                         Mijoz topilmadi
                                     </td>
                                 </tr>
                             )}
                             {filtered.map((customer) => (
-                                <tr key={customer.id} className="border-b border-slate-800 last:border-0 hover:bg-slate-800/50 transition-colors">
+                                <tr key={customer.id} className="border-b border-border last:border-0 hover:bg-accent transition-colors">
                                     <td className="px-5 py-4">
                                         <div className="flex items-center gap-3">
                                             <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-semibold">
                                                 {(customer.fullName ?? customer.phone ?? customer.telegramId ?? "?").charAt(0)}
                                             </div>
                                             <div>
-                                                <div className="text-white font-medium">{customer.fullName ?? "—"}</div>
-                                                <div className="text-slate-400 text-sm">{customer.phone ?? "—"}</div>
+                                                <div className="text-foreground font-medium">{customer.fullName ?? "—"}</div>
+                                                <div className="text-muted-foreground text-sm">{customer.phone ?? "—"}</div>
                                             </div>
                                         </div>
                                     </td>
                                     <td className="px-5 py-4">
-                                        <span className="text-white">{customer.totalOrders} ta</span>
+                                        <span className="text-foreground">{customer.totalOrders} ta</span>
                                     </td>
                                     <td className="px-5 py-4">
                                         <span className="text-emerald-400 font-semibold">{formatPrice(customer.totalSpent)}</span>
                                     </td>
                                     <td className="px-5 py-4">
-                                        <span className="text-slate-400">{customer.telegramId}</span>
+                                        <span className="text-muted-foreground">{customer.telegramId}</span>
                                     </td>
                                     <td className="px-5 py-4">
                                         <div className="flex items-center gap-2">
                                             <button
-                                                className="p-2 text-slate-400 hover:text-blue-400 hover:bg-blue-500/10 rounded-lg transition-colors"
+                                                className="p-2 text-muted-foreground hover:text-blue-400 hover:bg-blue-500/10 rounded-lg transition-colors"
                                                 onClick={() => openEditModal(customer)}
                                                 title="Tahrirlash"
                                             >
                                                 <Edit2 className="h-4 w-4" />
                                             </button>
                                             <button
-                                                className="p-2 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors"
+                                                className="p-2 text-muted-foreground hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors"
                                                 onClick={() => handleDelete(customer.id, customer.telegramId)}
                                                 title="O'chirish"
                                             >
@@ -366,8 +363,8 @@ export default function CustomersPage() {
                     </table>
                 </div>
                 {!loading && !error && pagination.totalPages > 1 && (
-                    <div className="px-5 py-4 border-t border-slate-800 flex items-center justify-between">
-                        <div className="text-sm text-slate-400">
+                    <div className="px-5 py-4 border-t border-border flex items-center justify-between">
+                        <div className="text-sm text-muted-foreground">
                             {pagination.total} ta mijozdan {(pagination.page - 1) * pagination.limit + 1}-
                             {Math.min(pagination.page * pagination.limit, pagination.total)} tasi ko'rsatilmoqda
                         </div>
@@ -376,18 +373,16 @@ export default function CustomersPage() {
                                 variant="outline"
                                 onClick={() => fetchCustomers(pagination.page - 1)}
                                 disabled={!pagination.hasPreviousPage}
-                                className="bg-slate-800 border-slate-700 text-white hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 Oldingi
                             </Button>
-                            <span className="text-sm text-slate-400 px-3">
+                            <span className="text-sm text-muted-foreground px-3">
                                 {pagination.page} / {pagination.totalPages}
                             </span>
                             <Button
                                 variant="outline"
                                 onClick={() => fetchCustomers(pagination.page + 1)}
                                 disabled={!pagination.hasNextPage}
-                                className="bg-slate-800 border-slate-700 text-white hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 Keyingi
                             </Button>
@@ -398,7 +393,7 @@ export default function CustomersPage() {
 
             {/* Edit Modal */}
             <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-                <DialogContent className="bg-slate-900 border-slate-800 text-white max-h-[90vh] overflow-y-auto">
+                <DialogContent className="max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle>Mijozni tahrirlash</DialogTitle>
                     </DialogHeader>
@@ -406,7 +401,6 @@ export default function CustomersPage() {
                         <div>
                             <Label>Ism</Label>
                             <Input
-                                className="bg-slate-800 border-slate-700"
                                 placeholder="To'liq ism"
                                 value={editForm.fullName}
                                 onChange={(e) => setEditForm({ ...editForm, fullName: e.target.value })}
@@ -415,7 +409,6 @@ export default function CustomersPage() {
                         <div>
                             <Label>Telefon</Label>
                             <Input
-                                className="bg-slate-800 border-slate-700"
                                 placeholder="+998901234567"
                                 value={editForm.phone}
                                 onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
@@ -424,7 +417,7 @@ export default function CustomersPage() {
                         <div>
                             <Label>Region</Label>
                             <select
-                                className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500"
+                                className="w-full bg-input border border-input rounded-lg px-3 py-2 text-foreground focus:outline-none focus:border-blue-500"
                                 value={editForm.regionId}
                                 onChange={(e) => setEditForm({ ...editForm, regionId: e.target.value })}
                             >
@@ -439,7 +432,7 @@ export default function CustomersPage() {
                         <div>
                             <Label>Manzil</Label>
                             <textarea
-                                className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500 resize-none"
+                                className="w-full bg-input border border-input rounded-lg px-3 py-2 text-foreground focus:outline-none focus:border-blue-500 resize-none"
                                 placeholder="To'liq manzil"
                                 rows={3}
                                 value={editForm.address}

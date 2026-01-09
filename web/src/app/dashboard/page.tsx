@@ -112,7 +112,7 @@ export default function DashboardPage() {
     ]
 
     if (loading) {
-        return <div className="text-white">Yuklanmoqda...</div>
+        return <div className="text-foreground">Yuklanmoqda...</div>
     }
     return (
         <div className="space-y-6">
@@ -123,7 +123,7 @@ export default function DashboardPage() {
                     return (
                         <div
                             key={index}
-                            className="bg-slate-900 border border-slate-800 rounded-2xl p-5"
+                            className="bg-card border border-border rounded-2xl p-5"
                         >
                             <div className="flex items-start justify-between mb-4">
                                 <div className={`${stat.iconBg} p-3 rounded-xl`}>
@@ -137,10 +137,10 @@ export default function DashboardPage() {
                                     </span>
                                 )}
                             </div>
-                            <div className="text-3xl font-bold text-white mb-1">
+                            <div className="text-3xl font-bold text-foreground mb-1">
                                 {stat.value}
                             </div>
-                            <div className="text-slate-400 text-sm">
+                            <div className="text-muted-foreground text-sm">
                                 {stat.label}
                             </div>
                         </div>
@@ -149,26 +149,26 @@ export default function DashboardPage() {
             </div>
 
             {/* Recent Orders */}
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+            <div className="bg-card border border-border rounded-2xl p-5">
                 <div className="mb-4">
-                    <h2 className="text-xl font-bold text-white">So&apos;ngi buyurtmalar</h2>
-                    <p className="text-slate-400 text-sm">Bugungi faol buyurtmalar</p>
+                    <h2 className="text-xl font-bold text-foreground">So&apos;ngi buyurtmalar</h2>
+                    <p className="text-muted-foreground text-sm">Bugungi faol buyurtmalar</p>
                 </div>
                 <div className="space-y-4">
                     {recentOrders.length === 0 ? (
-                        <div className="text-center text-slate-400 py-8">Hali buyurtmalar yo&apos;q</div>
+                        <div className="text-center text-muted-foreground py-8">Hali buyurtmalar yo&apos;q</div>
                     ) : (
                         recentOrders.map((order) => {
                             const statusInfo = statusMap[order.status] || { label: order.status, color: "bg-gray-500" }
                             return (
-                                <div key={order.id} className="flex items-center justify-between py-3 border-b border-slate-800 last:border-0">
+                                <div key={order.id} className="flex items-center justify-between py-3 border-b border-border last:border-0">
                                     <div className="flex items-center gap-4">
-                                        <div className="w-10 h-10 bg-slate-800 rounded-full flex items-center justify-center text-white font-semibold">
+                                        <div className="w-10 h-10 bg-secondary rounded-full flex items-center justify-center text-foreground font-semibold">
                                             {order.user?.fullName?.charAt(0) || "?"}
                                         </div>
                                         <div>
-                                            <div className="text-white font-medium">{order.user?.fullName || "Noma'lum"}</div>
-                                            <div className="text-slate-400 text-sm">
+                                            <div className="text-foreground font-medium">{order.user?.fullName || "Noma'lum"}</div>
+                                            <div className="text-muted-foreground text-sm">
                                                 #{order.id.slice(0, 8)} • {order.items?.length || 0} ta mahsulot
                                             </div>
                                         </div>
@@ -177,11 +177,11 @@ export default function DashboardPage() {
                                         <span className={`${statusInfo.color} text-white text-xs px-3 py-1 rounded-full`}>
                                             {statusInfo.label}
                                         </span>
-                                        <div className="flex items-center gap-1 text-slate-400 text-sm mt-1">
+                                        <div className="flex items-center gap-1 text-muted-foreground text-sm mt-1">
                                             <Clock className="h-3 w-3" />
                                             {timeAgo(order.createdAt)}
                                         </div>
-                                        <div className="text-white font-semibold text-sm mt-1">
+                                        <div className="text-foreground font-semibold text-sm mt-1">
                                             {formatPrice(order.totalAmount + order.deliveryFee)}
                                         </div>
                                     </div>

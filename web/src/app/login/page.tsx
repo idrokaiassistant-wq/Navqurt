@@ -48,12 +48,12 @@ export default function LoginPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex flex-col animate-fade-in">
+        <div className="min-h-screen bg-gradient-to-br from-background via-muted to-background flex flex-col animate-fade-in">
             {/* Back Button */}
             <div className="p-6">
                 <Link
                     href="/"
-                    className="inline-flex items-center gap-2 text-slate-400 hover:text-white transition-colors"
+                    className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
                 >
                     <ArrowLeft className="w-5 h-5" />
                     <span>Orqaga</span>
@@ -64,44 +64,44 @@ export default function LoginPage() {
             <div className="flex-1 flex items-center justify-center px-4 pb-20">
                 <div className="w-full max-w-md animate-slide-up">
                     {/* Glass Card */}
-                    <div className="bg-slate-800/50 backdrop-blur-xl border border-slate-700/50 rounded-3xl p-8 shadow-2xl">
+                    <div className="bg-card/50 backdrop-blur-xl border border-border/50 rounded-3xl p-8 shadow-2xl">
                         {/* Shield Icon */}
                         <div className="flex justify-center mb-6">
-                            <div className="w-20 h-20 bg-slate-700/50 rounded-2xl flex items-center justify-center border border-slate-600/30">
-                                <Shield className="w-10 h-10 text-slate-300" />
+                            <div className="w-20 h-20 bg-muted/50 rounded-2xl flex items-center justify-center border border-border/30">
+                                <Shield className="w-10 h-10 text-muted-foreground" />
                             </div>
                         </div>
 
                         {/* Title */}
                         <div className="text-center mb-8">
-                            <h1 className="text-2xl font-bold text-white mb-2">Admin Panel</h1>
-                            <p className="text-slate-400">Boshqaruv paneliga kirish</p>
+                            <h1 className="text-2xl font-bold text-foreground mb-2">Admin Panel</h1>
+                            <p className="text-muted-foreground">Boshqaruv paneliga kirish</p>
                         </div>
 
                         {/* Form */}
                         <form onSubmit={handleSubmit} className="space-y-5">
                             {/* Error Message */}
                             {error && (
-                                <div className="p-3 text-sm text-red-400 bg-red-500/10 border border-red-500/20 rounded-xl animate-shake">
+                                <div className="p-3 text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-xl animate-shake">
                                     {error}
                                 </div>
                             )}
 
                             {/* Login Field */}
                             <div>
-                                <label className="block text-sm font-medium text-slate-300 mb-2">
+                                <label className="block text-sm font-medium text-foreground mb-2">
                                     Login
                                 </label>
                                 <div className="relative">
                                     <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                        <User className="w-5 h-5 text-slate-500" />
+                                        <User className="w-5 h-5 text-muted-foreground" />
                                     </div>
                                     <input
                                         type="text"
                                         value={login}
                                         onChange={(e) => setLogin(e.target.value)}
                                         placeholder="admin"
-                                        className="w-full bg-slate-700/50 border border-slate-600/50 rounded-xl py-3.5 pl-12 pr-4 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                                        className="w-full bg-input/50 border border-border rounded-xl py-3.5 pl-12 pr-4 text-foreground placeholder-muted-foreground focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all"
                                         required
                                     />
                                 </div>
@@ -109,25 +109,25 @@ export default function LoginPage() {
 
                             {/* Password Field */}
                             <div>
-                                <label className="block text-sm font-medium text-slate-300 mb-2">
+                                <label className="block text-sm font-medium text-foreground mb-2">
                                     Parol
                                 </label>
                                 <div className="relative">
                                     <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                        <Lock className="w-5 h-5 text-slate-500" />
+                                        <Lock className="w-5 h-5 text-muted-foreground" />
                                     </div>
                                     <input
                                         type={showPassword ? "text" : "password"}
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
                                         placeholder="••••••••"
-                                        className="w-full bg-slate-700/50 border border-slate-600/50 rounded-xl py-3.5 pl-12 pr-12 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                                        className="w-full bg-input/50 border border-border rounded-xl py-3.5 pl-12 pr-12 text-foreground placeholder-muted-foreground focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all"
                                         required
                                     />
                                     <button
                                         type="button"
                                         onClick={() => setShowPassword(!showPassword)}
-                                        className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-500 hover:text-slate-300 transition-colors"
+                                        className="absolute inset-y-0 right-0 pr-4 flex items-center text-muted-foreground hover:text-foreground transition-colors"
                                     >
                                         {showPassword ? (
                                             <EyeOff className="w-5 h-5" />
@@ -142,7 +142,7 @@ export default function LoginPage() {
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className="w-full bg-slate-600/80 hover:bg-slate-600 border border-slate-500/30 text-white font-semibold py-3.5 rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed mt-2"
+                                className="w-full bg-primary hover:bg-primary/90 border border-border text-primary-foreground font-semibold py-3.5 rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed mt-2"
                             >
                                 {loading ? (
                                     <span className="flex items-center justify-center gap-2">
@@ -160,7 +160,7 @@ export default function LoginPage() {
                     </div>
 
                     {/* Footer */}
-                    <p className="text-center text-slate-500 text-sm mt-6">
+                    <p className="text-center text-muted-foreground text-sm mt-6">
                         © 2026 Navqurt. Barcha huquqlar himoyalangan.
                     </p>
                 </div>

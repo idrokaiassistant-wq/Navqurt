@@ -49,10 +49,10 @@ function NavContent({
     logoUrl: string;
 }) {
     return (
-        <div className="flex flex-col h-full bg-slate-900">
+        <div className="flex flex-col h-full bg-sidebar">
             {/* Logo */}
             <div className="p-6 flex items-center gap-3">
-                <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0 bg-slate-700 flex items-center justify-center">
+                <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0 bg-sidebar-accent flex items-center justify-center">
                     <Image
                         src={logoUrl || '/logo.png'}
                         alt="Navqurt Logo"
@@ -71,8 +71,8 @@ function NavContent({
                     />
                 </div>
                 <div>
-                    <h1 className="text-xl font-bold text-white">NAVQURT</h1>
-                    <p className="text-sm text-slate-400">Admin Panel</p>
+                    <h1 className="text-xl font-bold text-sidebar-foreground">NAVQURT</h1>
+                    <p className="text-sm text-sidebar-foreground/70">Admin Panel</p>
                 </div>
             </div>
 
@@ -92,8 +92,8 @@ function NavContent({
                             className={cn(
                                 "flex items-center justify-between px-4 py-3 rounded-xl transition-all",
                                 isActive || isDashboard
-                                    ? "bg-slate-800 text-white"
-                                    : "text-slate-400 hover:bg-slate-800/50 hover:text-white"
+                                    ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                                    : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
                             )}
                         >
                             <div className="flex items-center gap-3">
@@ -109,10 +109,10 @@ function NavContent({
             </nav>
 
             {/* Logout */}
-            <div className="p-4 border-t border-slate-800">
+            <div className="p-4 border-t border-sidebar-border">
                 <button
                     onClick={handleLogout}
-                    className="flex items-center gap-3 px-4 py-3 w-full rounded-xl text-slate-400 hover:bg-slate-800/50 hover:text-white transition-all"
+                    className="flex items-center gap-3 px-4 py-3 w-full rounded-xl text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground transition-all"
                 >
                     <LogOut className="h-5 w-5" />
                     <span>Chiqish</span>
@@ -150,28 +150,28 @@ export function Sidebar() {
     return (
         <>
             {/* Mobile Header */}
-            <div className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-slate-900 border-b border-slate-800 px-4 py-3 flex items-center justify-between">
+            <div className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-sidebar border-b border-sidebar-border px-4 py-3 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                     <Sheet open={open} onOpenChange={setOpen}>
                         <SheetTrigger asChild>
-                            <button className="p-2 text-slate-400 hover:text-white">
+                            <button className="p-2 text-sidebar-foreground/70 hover:text-sidebar-foreground">
                                 <Menu className="h-6 w-6" />
                             </button>
                         </SheetTrigger>
-                        <SheetContent side="left" className="p-0 w-72 border-slate-800">
+                        <SheetContent side="left" className="p-0 w-72 border-sidebar-border">
                             <NavContent pathname={pathname} setOpen={setOpen} handleLogout={handleLogout} logoUrl={logoUrl} />
                         </SheetContent>
                     </Sheet>
-                    <span className="text-lg font-semibold text-white">Dashboard</span>
+                    <span className="text-lg font-semibold text-sidebar-foreground">Dashboard</span>
                 </div>
                 <div className="flex items-center gap-2">
                     <button
                         onClick={toggleTheme}
-                        className="p-2 bg-slate-800 rounded-full text-amber-400 hover:bg-slate-700 transition-colors"
+                        className="p-2 bg-sidebar-accent rounded-full text-sidebar-accent-foreground hover:bg-sidebar-accent/80 transition-colors"
                     >
                         {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
                     </button>
-                    <button className="p-2 relative text-slate-400">
+                    <button className="p-2 relative text-sidebar-foreground/70">
                         <Bell className="h-5 w-5" />
                         <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
                             3
@@ -181,7 +181,7 @@ export function Sidebar() {
             </div>
 
             {/* Desktop Sidebar */}
-            <aside className="hidden lg:flex lg:w-72 lg:flex-col lg:fixed lg:inset-y-0 border-r border-slate-800">
+            <aside className="hidden lg:flex lg:w-72 lg:flex-col lg:fixed lg:inset-y-0 border-r border-sidebar-border">
                 <NavContent pathname={pathname} setOpen={setOpen} handleLogout={handleLogout} logoUrl={logoUrl} />
             </aside>
         </>
